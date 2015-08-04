@@ -4,6 +4,7 @@
 using JetBrains.Annotations;
 using Microsoft.Data.Entity.Infrastructure;
 using Microsoft.Data.Entity.Migrations;
+using Microsoft.Data.Entity.Query;
 using Microsoft.Data.Entity.SqlServer;
 using Microsoft.Data.Entity.SqlServer.Metadata;
 using Microsoft.Data.Entity.SqlServer.Update;
@@ -40,15 +41,21 @@ namespace Microsoft.Framework.DependencyInjection
                     .AddScoped<SqlServerModificationCommandBatchFactory>()
                     .AddScoped<SqlServerValueGeneratorSelector>()
                     .AddScoped<SqlServerDatabaseProviderServices>()
-                    .AddScoped<SqlServerDatabase>()
                     .AddScoped<ISqlServerConnection, SqlServerConnection>()
                     .AddScoped<SqlServerMigrationsSqlGenerator>()
                     .AddScoped<SqlServerDatabaseCreator>()
                     .AddScoped<SqlServerHistoryRepository>()
                     .AddScoped<SqlServerCompositeMethodCallTranslator>()
-                    .AddScoped<SqlServerCompositeMemberTranslator>());
+                    .AddScoped<SqlServerCompositeMemberTranslator>()
+                    .AddQuery());
 
             return builder;
+        }
+
+        private static IServiceCollection AddQuery(this IServiceCollection serviceCollection)
+        {
+            return serviceCollection
+                .AddScoped<SqlServerQueryCompilationContextFactory>();
         }
     }
 }

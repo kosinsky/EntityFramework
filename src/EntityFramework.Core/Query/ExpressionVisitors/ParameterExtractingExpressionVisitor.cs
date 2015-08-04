@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -8,30 +8,23 @@ using System.Linq.Expressions;
 using System.Reflection;
 using JetBrains.Annotations;
 using Microsoft.Data.Entity.Internal;
+using Microsoft.Data.Entity.Utilities;
 using Remotion.Linq.Parsing.ExpressionVisitors.TreeEvaluation;
 
 namespace Microsoft.Data.Entity.Query.ExpressionVisitors
 {
     public class ParameterExtractingExpressionVisitor : ExpressionVisitorBase
     {
-        public static Expression ExtractParameters(
-            [NotNull] Expression expressionTree,
-            [NotNull] QueryContext queryContext,
-            [NotNull] IEvaluatableExpressionFilter evaluatableExpressionFilter)
-        {
-            var functionEvaluationDisabledExpression = new FunctionEvaluationDisablingVisitor().Visit(expressionTree);
-            var partialEvaluationInfo = EvaluatableTreeFindingExpressionVisitor.Analyze(functionEvaluationDisabledExpression, evaluatableExpressionFilter);
-            var visitor = new ParameterExtractingExpressionVisitor(partialEvaluationInfo, queryContext);
-
-            return visitor.Visit(functionEvaluationDisabledExpression);
-        }
-
         private readonly PartialEvaluationInfo _partialEvaluationInfo;
         private readonly QueryContext _queryContext;
 
-        private ParameterExtractingExpressionVisitor(
-            PartialEvaluationInfo partialEvaluationInfo, QueryContext queryContext)
+        public ParameterExtractingExpressionVisitor(
+            [NotNull] PartialEvaluationInfo partialEvaluationInfo,
+            [NotNull] QueryContext queryContext)
         {
+            Check.NotNull(partialEvaluationInfo, nameof(partialEvaluationInfo));
+            Check.NotNull(queryContext, nameof(queryContext));
+
             _partialEvaluationInfo = partialEvaluationInfo;
             _queryContext = queryContext;
         }

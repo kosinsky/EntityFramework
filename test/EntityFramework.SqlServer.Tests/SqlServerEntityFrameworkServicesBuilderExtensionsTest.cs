@@ -2,13 +2,15 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.Data.Entity.Migrations;
+using Microsoft.Data.Entity.Query;
+using Microsoft.Data.Entity.SqlServer;
 using Microsoft.Data.Entity.SqlServer.Metadata;
 using Microsoft.Data.Entity.SqlServer.Update;
 using Microsoft.Data.Entity.SqlServer.ValueGeneration;
 using Microsoft.Data.Entity.Tests;
 using Microsoft.Data.Entity.Update;
 
-namespace Microsoft.Data.Entity.SqlServer.Tests
+namespace Microsoft.Data.Entity
 {
     public class SqlServerEntityFrameworkServicesBuilderExtensionsTest : RelationalEntityFrameworkServicesBuilderExtensionsTest
     {
@@ -30,13 +32,13 @@ namespace Microsoft.Data.Entity.SqlServer.Tests
             VerifyScoped<SqlServerModificationCommandBatchFactory>();
             VerifyScoped<SqlServerValueGeneratorSelector>();
             VerifyScoped<SqlServerDatabaseProviderServices>();
-            VerifyScoped<SqlServerDatabase>();
             VerifyScoped<ISqlServerConnection>();
             VerifyScoped<SqlServerMigrationsSqlGenerator>();
             VerifyScoped<SqlServerDatabaseCreator>();
             VerifyScoped<SqlServerHistoryRepository>();
             VerifyScoped<SqlServerCompositeMethodCallTranslator>();
             VerifyScoped<SqlServerCompositeMemberTranslator>();
+            VerifyScoped<SqlServerQueryCompilationContextFactory>();
         }
 
         public SqlServerEntityFrameworkServicesBuilderExtensionsTest()
