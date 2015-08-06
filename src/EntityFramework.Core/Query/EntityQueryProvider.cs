@@ -42,6 +42,8 @@ namespace Microsoft.Data.Entity.Query
             _queryContextFactory = queryContextFactory;
         }
 
+        protected DbContext  Context { get; set; }
+
         public virtual IQueryable<TElement> CreateQuery<TElement>(Expression expression)
         {
             Check.NotNull(expression, nameof(expression));

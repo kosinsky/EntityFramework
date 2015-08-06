@@ -45,6 +45,7 @@ namespace Microsoft.Data.Entity.Infrastructure
                 .AddScoped<SqlStatementExecutor>()
                 .AddScoped<CommandBatchPreparer>()
                 .AddScoped<IModelDiffer, ModelDiffer>()
+                .AddScoped<RelationalQueryProvider>()
                 .AddScoped(p => GetProviderServices(p).ParameterNameGeneratorFactory)
                 .AddScoped(p => GetProviderServices(p).SqlStatementExecutor)
                 .AddScoped(p => GetProviderServices(p).CompositeMethodCallTranslator)

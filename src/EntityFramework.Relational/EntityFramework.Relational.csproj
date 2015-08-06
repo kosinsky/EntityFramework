@@ -52,6 +52,8 @@
     <Compile Include="..\Shared\LoggingExtensions.cs">
       <Link>Extensions\LoggingExtensions.cs</Link>
     </Compile>
+    <Compile Include="Extensions\DatabaseFacadeExtensions.cs" />
+    <Compile Include="Infrastructure\RelationalDatabaseFacade.cs" />
     <Compile Include="Infrastructure\RelationalDbContextOptionsBuilder.cs" />
     <Compile Include="Infrastructure\RelationalEntityFrameworkServicesBuilderExtensions.cs" />
     <Compile Include="Infrastructure\RelationalLoggingEventIds.cs" />
@@ -70,6 +72,7 @@
     <Compile Include="Metadata\RelationalPropertyExtensions.cs" />
     <Compile Include="Migrations\Infrastructure\ModelDifferContext.cs" />
     <Compile Include="Query\Internal\RelationalExpressionPrinter.cs" />
+    <Compile Include="Query\RelationalQueryProvider.cs" />
     <Compile Include="RelationalReferenceReferenceBuilderExtensions.cs" />
     <Compile Include="Migrations\Builders\ColumnsBuilder.cs" />
     <Compile Include="Migrations\Builders\CreateTableBuilder.cs" />

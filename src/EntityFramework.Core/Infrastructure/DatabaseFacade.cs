@@ -21,6 +21,8 @@ namespace Microsoft.Data.Entity.Infrastructure
             _context = context;
         }
 
+        protected DbContext Context => _context;
+
         // TODO: Make sure API docs say that return value indicates whether or not the database or tables were created
         public virtual bool EnsureCreated() => this.GetService<IDatabaseCreator>().EnsureCreated();
 
