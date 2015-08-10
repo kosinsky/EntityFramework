@@ -1,7 +1,6 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using JetBrains.Annotations;
@@ -15,16 +14,20 @@ namespace Microsoft.Data.Entity.Query.ExpressionVisitors
 {
     public class RelationalProjectionExpressionVisitor : ProjectionExpressionVisitor
     {
+        private readonly ISqlTranslatingExpressionVisitorFactory _sqlTranslatingExpressionVisitorFactory;
         private readonly RelationalQueryModelVisitor _queryModelVisitor;
         private readonly IQuerySource _querySource;
 
         public RelationalProjectionExpressionVisitor(
+            [NotNull] ISqlTranslatingExpressionVisitorFactory sqlTranslatingExpressionVisitorFactory,
             [NotNull] RelationalQueryModelVisitor queryModelVisitor,
             [NotNull] IQuerySource querySource)
             : base(Check.NotNull(queryModelVisitor, nameof(queryModelVisitor)))
         {
+            Check.NotNull(sqlTranslatingExpressionVisitorFactory, nameof(sqlTranslatingExpressionVisitorFactory));
             Check.NotNull(querySource, nameof(querySource));
 
+            _sqlTranslatingExpressionVisitorFactory = sqlTranslatingExpressionVisitorFactory;
             _queryModelVisitor = queryModelVisitor;
             _querySource = querySource;
         }
@@ -78,8 +81,8 @@ namespace Microsoft.Data.Entity.Query.ExpressionVisitors
 
                     if (aliasExpression != null)
                     {
-                        aliasExpression.SourceMember 
-                            = newExpression.Members?[i] 
+                        aliasExpression.SourceMember
+                            = newExpression.Members?[i]
                                 ?? (newExpression.Arguments[i] as MemberExpression)?.Member;
                     }
                 }
@@ -97,15 +100,15 @@ namespace Microsoft.Data.Entity.Query.ExpressionVisitors
                 && selectExpression != null)
             {
                 var sqlExpression
-                    = new SqlTranslatingExpressionVisitor(
-                        _queryModelVisitor, selectExpression, inProjection: true)
+                    = _sqlTranslatingExpressionVisitorFactory
+                        .Create(QueryModelVisitor, selectExpression, inProjection: true)
                         .Visit(expression);
 
                 if (sqlExpression == null)
                 {
                     if (!(expression is QuerySourceReferenceExpression))
                     {
-                        _queryModelVisitor.RequiresClientProjection = true;
+                        QueryModelVisitor.RequiresClientProjection = true;
                     }
                 }
                 else

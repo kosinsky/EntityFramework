@@ -9,7 +9,6 @@ using System.Linq.Expressions;
 using JetBrains.Annotations;
 using Microsoft.Data.Entity.Metadata;
 using Microsoft.Data.Entity.Query.Sql;
-using Microsoft.Data.Entity.Storage;
 using Microsoft.Data.Entity.Utilities;
 using Remotion.Linq.Clauses;
 
@@ -19,9 +18,13 @@ namespace Microsoft.Data.Entity.Query.Expressions
     {
         private const string SystemAliasPrefix = "t";
 #if DEBUG
-        internal string DebugView => ToString();
+        internal string DebugView
+            => _sqlQueryGeneratorFactory.CreateGenerator(this)
+                .GenerateSql(new Dictionary<string, object>())
+                .CommandText;
 #endif
 
+        private readonly ISqlQueryGeneratorFactory _sqlQueryGeneratorFactory;
         private readonly List<Expression> _projection = new List<Expression>();
         private readonly List<TableExpressionBase> _tables = new List<TableExpressionBase>();
         private readonly List<Ordering> _orderBy = new List<Ordering>();
@@ -34,16 +37,24 @@ namespace Microsoft.Data.Entity.Query.Expressions
 
         private bool _isDistinct;
 
-        public virtual Expression Predicate { get; [param: CanBeNull] set; }
+        public virtual Expression Predicate { get;[param: CanBeNull] set; }
 
-        public SelectExpression()
+        public SelectExpression([NotNull] ISqlQueryGeneratorFactory sqlQueryGeneratorFactory)
             : base(null, null)
         {
+            Check.NotNull(sqlQueryGeneratorFactory, nameof(sqlQueryGeneratorFactory));
+
+            _sqlQueryGeneratorFactory = sqlQueryGeneratorFactory;
         }
 
-        public SelectExpression([NotNull] string alias)
+        public SelectExpression(
+            [NotNull] ISqlQueryGeneratorFactory sqlQueryGeneratorFactory,
+            [NotNull] string alias)
             : base(null, Check.NotEmpty(alias, nameof(alias)))
         {
+            Check.NotNull(sqlQueryGeneratorFactory, nameof(sqlQueryGeneratorFactory));
+
+            _sqlQueryGeneratorFactory = sqlQueryGeneratorFactory;
         }
         public override Type Type => _projection.Count == 1
           ? _projection[0].Type
@@ -54,7 +65,7 @@ namespace Microsoft.Data.Entity.Query.Expressions
             Check.NotEmpty(alias, nameof(alias));
 
             var selectExpression
-                = new SelectExpression(alias)
+                = new SelectExpression(_sqlQueryGeneratorFactory, alias)
                 {
                     _limit = _limit,
                     _offset = _offset,
@@ -220,7 +231,7 @@ namespace Microsoft.Data.Entity.Query.Expressions
         {
             _subqueryDepth++;
 
-            var subquery = new SelectExpression(SystemAliasPrefix + _subqueryDepth);
+            var subquery = new SelectExpression(_sqlQueryGeneratorFactory, SystemAliasPrefix + _subqueryDepth);
 
             var columnAliasCounter = 0;
 
@@ -242,7 +253,7 @@ namespace Microsoft.Data.Entity.Query.Expressions
             subquery.AddTables(_tables);
             subquery.AddToOrderBy(_orderBy);
             subquery.Predicate = Predicate;
-            
+
             subquery._limit = _limit;
             subquery._offset = _offset;
             subquery._isDistinct = _isDistinct;
@@ -252,7 +263,7 @@ namespace Microsoft.Data.Entity.Query.Expressions
             _limit = null;
             _offset = null;
             _isDistinct = false;
-            
+
             Predicate = null;
             ClearTables();
             ClearProjection();
@@ -314,7 +325,7 @@ namespace Microsoft.Data.Entity.Query.Expressions
             return _projection.Count - 1;
         }
 
-        public virtual int AddToProjection([NotNull] AliasExpression aliasExpression) 
+        public virtual int AddToProjection([NotNull] AliasExpression aliasExpression)
             => AddAliasToProjection(aliasExpression.Alias, aliasExpression.Expression);
 
         public virtual int AddAliasToProjection([CanBeNull] string alias, [NotNull] Expression expression)
@@ -619,7 +630,7 @@ namespace Microsoft.Data.Entity.Query.Expressions
 
             return AddOuterJoin(tableExpression, Enumerable.Empty<AliasExpression>());
         }
-        
+
         public virtual JoinExpressionBase AddOuterJoin(
             [NotNull] TableExpressionBase tableExpression,
             [NotNull] IEnumerable<Expression> projection)
@@ -691,7 +702,7 @@ namespace Microsoft.Data.Entity.Query.Expressions
                 ? specificVisitor.VisitSelect(this)
                 : base.Accept(visitor);
         }
-        
+
         protected override Expression VisitChildren(ExpressionVisitor visitor)
         {
             foreach (var expression in Projection)
@@ -714,17 +725,16 @@ namespace Microsoft.Data.Entity.Query.Expressions
             return this;
         }
 
-        // TODO: Use generator from DI
-        public override string ToString()
-            => new DefaultQuerySqlGenerator(this, new NullTypeMapper())
-                .GenerateSql(new Dictionary<string, object>()).CommandText;
+        public virtual ISqlQueryGenerator CreateGenerator()
+            => _sqlQueryGeneratorFactory.CreateGenerator(this);
 
-        private class NullTypeMapper : IRelationalTypeMapper
-        {
-            public RelationalTypeMapping MapPropertyType(IProperty property) => new RelationalTypeMapping("?");
-
-            public RelationalTypeMapping GetDefaultMapping(Type clrType) => new RelationalTypeMapping("?");
-        }
+        public virtual ISqlQueryGenerator CreateRawCommandGenerator(
+            [NotNull] string sql,
+            [NotNull] object[] parameters)
+            => _sqlQueryGeneratorFactory.CreateRawCommandGenerator(
+                this,
+                Check.NotEmpty(sql, nameof(sql)),
+                Check.NotNull(parameters, nameof(parameters)));
 
         // TODO: Make polymorphic
         public virtual Expression UpdateColumnExpression(
@@ -758,20 +768,20 @@ namespace Microsoft.Data.Entity.Query.Expressions
             switch (expression.NodeType)
             {
                 case ExpressionType.Coalesce:
-                {
-                    var binaryExpression = (BinaryExpression)expression;
-                    var left = UpdateColumnExpression(binaryExpression.Left, tableExpression);
-                    var right = UpdateColumnExpression(binaryExpression.Right, tableExpression);
-                    return binaryExpression.Update(left, binaryExpression.Conversion, right);
-                }
+                    {
+                        var binaryExpression = (BinaryExpression)expression;
+                        var left = UpdateColumnExpression(binaryExpression.Left, tableExpression);
+                        var right = UpdateColumnExpression(binaryExpression.Right, tableExpression);
+                        return binaryExpression.Update(left, binaryExpression.Conversion, right);
+                    }
                 case ExpressionType.Conditional:
-                {
-                    var conditionalExpression = (ConditionalExpression)expression;
-                    var test = UpdateColumnExpression(conditionalExpression.Test, tableExpression);
-                    var ifTrue = UpdateColumnExpression(conditionalExpression.IfTrue, tableExpression);
-                    var ifFalse = UpdateColumnExpression(conditionalExpression.IfFalse, tableExpression);
-                    return conditionalExpression.Update(test, ifTrue, ifFalse);
-                }
+                    {
+                        var conditionalExpression = (ConditionalExpression)expression;
+                        var test = UpdateColumnExpression(conditionalExpression.Test, tableExpression);
+                        var ifTrue = UpdateColumnExpression(conditionalExpression.IfTrue, tableExpression);
+                        var ifFalse = UpdateColumnExpression(conditionalExpression.IfFalse, tableExpression);
+                        return conditionalExpression.Update(test, ifTrue, ifFalse);
+                    }
             }
 
             return expression;
