@@ -1,35 +1,37 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.Data.Entity.ChangeTracking.Internal;
-using Microsoft.Data.Entity.Metadata;
-using Microsoft.Data.Entity.Metadata.Internal;
+using System;
+using JetBrains.Annotations;
 using Microsoft.Data.Entity.Utilities;
 using Microsoft.Framework.Logging;
-using JetBrains.Annotations;
+using Microsoft.Framework.DependencyInjection;
+using Microsoft.Data.Entity.Query.ExpressionVisitors;
 
 namespace Microsoft.Data.Entity.Query
 {
     public class InMemoryQueryCompilationContext : QueryCompilationContext
     {
         public InMemoryQueryCompilationContext(
-            [NotNull] IModel model,
-            [NotNull] ILogger logger,
-            [NotNull] IEntityMaterializerSource entityMaterializerSource,
-            [NotNull] IEntityKeyFactorySource entityKeyFactorySource,
-            [NotNull] IClrAccessorSource<IClrPropertyGetter> clrPropertyGetterSource)
+            [NotNull] IServiceProvider serviceProvider,
+            [NotNull] ILoggerFactory loggerFactory,
+            [NotNull] IEntityQueryModelVisitorFactory entityQueryModelVisitorFactory,
+            [NotNull] IRequiresMaterializationExpressionVisitorFactory requiresMaterializationExpressionVisitorFactory)
             : base(
-                Check.NotNull(model, nameof(model)),
-                Check.NotNull(logger, nameof(logger)),
-                new LinqOperatorProvider(),
-                new ResultOperatorHandler(),
-                Check.NotNull(entityMaterializerSource, nameof(entityMaterializerSource)),
-                Check.NotNull(entityKeyFactorySource, nameof(entityKeyFactorySource)),
-                Check.NotNull(clrPropertyGetterSource, nameof(clrPropertyGetterSource)))
+                Check.NotNull(serviceProvider, nameof(serviceProvider)),
+                Check.NotNull(loggerFactory, nameof(loggerFactory)),
+                Check.NotNull(entityQueryModelVisitorFactory, nameof(entityQueryModelVisitorFactory)),
+                Check.NotNull(requiresMaterializationExpressionVisitorFactory, nameof(requiresMaterializationExpressionVisitorFactory)))
         {
         }
 
         public override EntityQueryModelVisitor CreateQueryModelVisitor(EntityQueryModelVisitor parentEntityQueryModelVisitor)
-            => new InMemoryQueryModelVisitor(this);
+        {
+            var visitor = ServiceProvider.GetService<InMemoryQueryModelVisitor>();
+
+            visitor.QueryCompilationContext = this;
+
+            return visitor;
+        }
     }
 }

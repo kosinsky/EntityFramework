@@ -23,27 +23,30 @@ namespace Microsoft.Data.Entity.Query.Sql
 {
     public class DefaultQuerySqlGenerator : ThrowingExpressionVisitor, ISqlExpressionVisitor, ISqlQueryGenerator
     {
-        private readonly SelectExpression _selectExpression;
+        private readonly IParameterNameGeneratorFactory _parameterNameGeneratorFactory;
 
+        private SelectExpression _selectExpression;
         private RelationalCommandBuilder _sql;
         private ParameterNameGenerator _parameterNameGenerator;
         private IDictionary<string, object> _parameterValues;
 
-        public DefaultQuerySqlGenerator(
-            [NotNull] SelectExpression selectExpression,
-            [NotNull] IRelationalTypeMapper typeMapper)
+        public DefaultQuerySqlGenerator([NotNull] IParameterNameGeneratorFactory parameterNameGeneratorFactory)
         {
-            Check.NotNull(selectExpression, nameof(selectExpression));
-            Check.NotNull(typeMapper, nameof(typeMapper));
+            Check.NotNull(parameterNameGeneratorFactory, nameof(parameterNameGeneratorFactory));
 
-            _selectExpression = selectExpression;
-            TypeMapper = typeMapper;
+            _parameterNameGeneratorFactory = parameterNameGeneratorFactory;
         }
 
-        public virtual IRelationalTypeMapper TypeMapper { get; }
+        public virtual SelectExpression SelectExpression
+        {
+            get { return _selectExpression; }
 
-        protected virtual IParameterNameGeneratorFactory ParameterNameGeneratorFactory { get; }
-            = new ParameterNameGeneratorFactory();
+            [param: NotNull]
+            set
+            {
+                _selectExpression = value;
+            }
+        }
 
         protected virtual ParameterNameGenerator ParameterNameGenerator => _parameterNameGenerator;
 
@@ -52,7 +55,7 @@ namespace Microsoft.Data.Entity.Query.Sql
             Check.NotNull(parameterValues, nameof(parameterValues));
 
             _sql = new RelationalCommandBuilder();
-            _parameterNameGenerator = ParameterNameGeneratorFactory.Create();
+            _parameterNameGenerator = _parameterNameGeneratorFactory.Create();
             _parameterValues = parameterValues;
 
             Visit(_selectExpression);
@@ -72,7 +75,6 @@ namespace Microsoft.Data.Entity.Query.Sql
         protected virtual RelationalCommandBuilder Sql => _sql;
 
         protected virtual string ConcatOperator => "+";
-
         protected virtual string TrueLiteral => "1";
         protected virtual string FalseLiteral => "0";
         protected virtual string TypedTrueLiteral => "CAST(1 AS BIT)";

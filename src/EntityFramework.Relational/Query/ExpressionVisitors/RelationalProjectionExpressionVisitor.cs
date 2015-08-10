@@ -1,7 +1,6 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using JetBrains.Annotations;
@@ -15,22 +14,41 @@ namespace Microsoft.Data.Entity.Query.ExpressionVisitors
 {
     public class RelationalProjectionExpressionVisitor : ProjectionExpressionVisitor
     {
-        private readonly RelationalQueryModelVisitor _queryModelVisitor;
-        private readonly IQuerySource _querySource;
+        private readonly ISqlTranslatingExpressionVisitorFactory _sqlTranslatingExpressionVisitorFactory;
+
+        private IQuerySource _querySource;
 
         public RelationalProjectionExpressionVisitor(
-            [NotNull] RelationalQueryModelVisitor queryModelVisitor,
-            [NotNull] IQuerySource querySource)
-            : base(Check.NotNull(queryModelVisitor, nameof(queryModelVisitor)))
+            [NotNull] ISqlTranslatingExpressionVisitorFactory sqlTranslatingExpressionVisitorFactory)
         {
-            Check.NotNull(querySource, nameof(querySource));
+            Check.NotNull(sqlTranslatingExpressionVisitorFactory, nameof(sqlTranslatingExpressionVisitorFactory));
 
-            _queryModelVisitor = queryModelVisitor;
-            _querySource = querySource;
+            _sqlTranslatingExpressionVisitorFactory = sqlTranslatingExpressionVisitorFactory;
         }
 
-        private new RelationalQueryModelVisitor QueryModelVisitor
-            => (RelationalQueryModelVisitor)base.QueryModelVisitor;
+        public virtual IQuerySource QuerySource
+        {
+            get { return _querySource; }
+            [param: NotNull]
+            set
+            {
+                Check.NotNull(value, nameof(value));
+
+                _querySource = value;
+            }
+        }
+
+        public virtual new RelationalQueryModelVisitor QueryModelVisitor
+        {
+            get { return (RelationalQueryModelVisitor)base.QueryModelVisitor; }
+            [param: NotNull]
+            set
+            {
+                Check.NotNull(value, nameof(value));
+
+                base.QueryModelVisitor = value;
+            }
+        }
 
         protected override Expression VisitMethodCall(MethodCallExpression methodCallExpression)
         {
@@ -78,8 +96,8 @@ namespace Microsoft.Data.Entity.Query.ExpressionVisitors
 
                     if (aliasExpression != null)
                     {
-                        aliasExpression.SourceMember 
-                            = newExpression.Members?[i] 
+                        aliasExpression.SourceMember
+                            = newExpression.Members?[i]
                                 ?? (newExpression.Arguments[i] as MemberExpression)?.Member;
                     }
                 }
@@ -97,15 +115,15 @@ namespace Microsoft.Data.Entity.Query.ExpressionVisitors
                 && selectExpression != null)
             {
                 var sqlExpression
-                    = new SqlTranslatingExpressionVisitor(
-                        _queryModelVisitor, selectExpression, inProjection: true)
+                    = _sqlTranslatingExpressionVisitorFactory
+                        .Create(QueryModelVisitor, selectExpression, inProjection: true)
                         .Visit(expression);
 
                 if (sqlExpression == null)
                 {
                     if (!(expression is QuerySourceReferenceExpression))
                     {
-                        _queryModelVisitor.RequiresClientProjection = true;
+                        QueryModelVisitor.RequiresClientProjection = true;
                     }
                 }
                 else

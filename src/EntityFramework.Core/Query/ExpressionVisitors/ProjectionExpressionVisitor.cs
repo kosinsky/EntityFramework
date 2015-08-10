@@ -5,19 +5,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using JetBrains.Annotations;
-using Microsoft.Data.Entity.Utilities;
 using Remotion.Linq.Clauses.Expressions;
 
 namespace Microsoft.Data.Entity.Query.ExpressionVisitors
 {
     public class ProjectionExpressionVisitor : DefaultQueryExpressionVisitor
     {
-        public ProjectionExpressionVisitor([NotNull] EntityQueryModelVisitor entityQueryModelVisitor)
-            : base(Check.NotNull(entityQueryModelVisitor, nameof(entityQueryModelVisitor)))
-        {
-        }
-
         protected override Expression VisitSubQuery(SubQueryExpression subQueryExpression)
         {
             var queryModelVisitor = CreateQueryModelVisitor();
@@ -43,7 +36,7 @@ namespace Microsoft.Data.Entity.Query.ExpressionVisitors
                 {
                     subExpression
                         = Expression.Call(
-                            QueryModelVisitor.LinqOperatorProvider.ToQueryable
+                            QueryModelVisitor.QueryCompilationContext.LinqOperatorProvider.ToQueryable
                                 .MakeGenericMethod(resultItemType),
                             subExpression);
                 }
@@ -55,7 +48,7 @@ namespace Microsoft.Data.Entity.Query.ExpressionVisitors
                     {
                         subExpression
                             = Expression.Call(
-                                QueryModelVisitor.LinqOperatorProvider.ToOrdered
+                                QueryModelVisitor.QueryCompilationContext.LinqOperatorProvider.ToOrdered
                                     .MakeGenericMethod(resultItemType),
                                 subExpression);
                     }
@@ -63,7 +56,7 @@ namespace Microsoft.Data.Entity.Query.ExpressionVisitors
                     {
                         subExpression
                             = Expression.Call(
-                                QueryModelVisitor.LinqOperatorProvider.ToEnumerable
+                                QueryModelVisitor.QueryCompilationContext.LinqOperatorProvider.ToEnumerable
                                     .MakeGenericMethod(resultItemType),
                                 subExpression);
                     }

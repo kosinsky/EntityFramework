@@ -26,13 +26,12 @@ namespace Microsoft.Data.Entity.InMemory
         public InMemoryDatabase(
             [NotNull] IModel model,
             [NotNull] ILoggerFactory loggerFactory,
-            [NotNull] IQueryCompilationContextFactory compilationContextFactory,
+            [NotNull] IQueryCompilationContextFactory qaueryCompilationContextFactory,
             [NotNull] IInMemoryStore persistentStore,
             [NotNull] IDbContextOptions options)
-            : base(model, loggerFactory, compilationContextFactory)
+            : base(model, loggerFactory, qaueryCompilationContextFactory)
         {
             Check.NotNull(loggerFactory, nameof(loggerFactory));
-            Check.NotNull(compilationContextFactory, nameof(compilationContextFactory));
             Check.NotNull(persistentStore, nameof(persistentStore));
             Check.NotNull(options, nameof(options));
 

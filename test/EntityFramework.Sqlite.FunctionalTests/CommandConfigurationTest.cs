@@ -125,8 +125,17 @@ namespace Microsoft.Data.Entity.Sqlite.FunctionalTests
         {
             var selectExpression = new SelectExpression();
 
-            return new CommandBuilder(
-                () => new DefaultQuerySqlGenerator(selectExpression, new SqliteTypeMapper()), new UntypedValueBufferFactoryFactory());
+            var commandBuilder = new CommandBuilder(
+                new UntypedValueBufferFactoryFactory(),
+                new SqliteTypeMapper());
+
+            commandBuilder.Initialize(
+                () => new DefaultQuerySqlGenerator(new ParameterNameGeneratorFactory())
+                {
+                    SelectExpression = selectExpression
+                });
+
+            return commandBuilder;
         }
 
         [Fact]

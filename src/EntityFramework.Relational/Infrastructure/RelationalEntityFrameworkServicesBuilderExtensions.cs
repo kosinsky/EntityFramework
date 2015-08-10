@@ -8,6 +8,9 @@ using Microsoft.Data.Entity.Internal;
 using Microsoft.Data.Entity.Migrations;
 using Microsoft.Data.Entity.Migrations.Internal;
 using Microsoft.Data.Entity.Query;
+using Microsoft.Data.Entity.Query.ExpressionVisitors;
+using Microsoft.Data.Entity.Query.Internal;
+using Microsoft.Data.Entity.Query.Sql;
 using Microsoft.Data.Entity.Storage;
 using Microsoft.Data.Entity.Update;
 using Microsoft.Data.Entity.Utilities;
@@ -69,7 +72,36 @@ namespace Microsoft.Data.Entity.Infrastructure
         private static IServiceCollection AddQuery(this IServiceCollection serviceCollection)
         {
             return serviceCollection
-                .AddScoped<RelationalQueryContextFactory>();
+                .AddScoped<IMaterializerFactory, MaterializerFactory>()
+                .AddScoped<ICommandBuilderFactory, CommandBuilderFactory>()
+                .AddScoped<RelationalQueryContextFactory>()
+                .AddScoped<RelationalExpressionPrinter>()
+                .AddScoped<AsyncQueryMethodProvider>()
+                .AddScoped<QueryMethodProvider>()
+                .AddScoped<RelationalResultOperatorHandler>()
+                .AddScoped<RelationalQueryCompilationContextFactory>()
+                .AddScoped<RelationalQueryModelVisitorFactory>()
+                .AddScoped(p => GetProviderServices(p).SqlQueryGeneratorFactory)
+                .AddTransient<RelationalQueryCompilationContext>()
+                .AddTransient<RelationalQueryModelVisitor>()
+                .AddTransient<RawSqlQueryGenerator>()
+                .AddTransient<CommandBuilder>()
+                // Expression Visitors
+                .AddTransient<CompositePredicateExpressionVisitor>()
+                .AddTransient<IncludeExpressionVisitor>()
+                .AddTransient<QueryFlatteningExpressionVisitor>()
+                .AddTransient<RelationalEntityQueryableExpressionVisitor>()
+                .AddTransient<RelationalProjectionExpressionVisitor>()
+                .AddTransient<ShapedQueryFindingExpressionVisitor>()
+                .AddTransient<SqlTranslatingExpressionVisitor>()
+                // Expression Visitor Factories
+                .AddScoped<ICompositePredicateExpressionVisitorFactory, CompositePredicateExpressionVisitorFactory>()
+                .AddScoped<IIncludeExpressionVisitorFactory, IncludeExpressionVisitorFactory>()
+                .AddScoped<IQueryFlatteningExpressionVisitorFactory, QueryFlatteningExpressionVisitorFactory>()
+                .AddScoped<IShapedQueryFindingExpressionVisitorFactory, ShapedQueryFindingExpressionVisitorFactory>()
+                .AddScoped<ISqlTranslatingExpressionVisitorFactory, SqlTranslatingExpressionVisitorFactory>()
+                .AddScoped<RelationalEntityQueryableExpressionVisitorFactory>()
+                .AddScoped<RelationalProjectionExpressionVisitorFactory>();
         }
 
         private static IRelationalDatabaseProviderServices GetProviderServices(IServiceProvider serviceProvider)

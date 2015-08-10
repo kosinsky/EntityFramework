@@ -10,11 +10,11 @@ namespace Microsoft.Data.Entity.Query.ExpressionVisitors
 {
     public class ShapedQueryFindingExpressionVisitor : ExpressionVisitorBase
     {
-        private readonly RelationalQueryCompilationContext _relationalQueryCompilationContext;
+        private RelationalQueryCompilationContext _relationalQueryCompilationContext;
 
         private MethodCallExpression _shapedQueryMethodCall;
 
-        public ShapedQueryFindingExpressionVisitor(
+        public virtual void Initialize(
             [NotNull] RelationalQueryCompilationContext relationalQueryCompilationContext)
         {
             Check.NotNull(relationalQueryCompilationContext, nameof(relationalQueryCompilationContext));

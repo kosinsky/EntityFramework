@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using JetBrains.Annotations;
+using Microsoft.Data.Entity.Metadata;
 using Microsoft.Data.Entity.Utilities;
 using Remotion.Linq;
 using Remotion.Linq.Clauses;
@@ -14,13 +15,22 @@ namespace Microsoft.Data.Entity.Query.ExpressionVisitors
 {
     public class RequiresMaterializationExpressionVisitor : ExpressionVisitorBase
     {
-        private readonly EntityQueryModelVisitor _queryModelVisitor;
+        private readonly IModel _model;
+
         private readonly Dictionary<IQuerySource, int> _querySources = new Dictionary<IQuerySource, int>();
 
+        private EntityQueryModelVisitor _queryModelVisitor;
         private QueryModel _queryModel;
         private Expression _parentSelector;
 
-        public RequiresMaterializationExpressionVisitor([NotNull] EntityQueryModelVisitor queryModelVisitor)
+        public RequiresMaterializationExpressionVisitor([NotNull] IModel model)
+        {
+            Check.NotNull(model, nameof(model));
+
+            _model = model;
+        }
+
+        public virtual void Initialize([NotNull] EntityQueryModelVisitor queryModelVisitor)
         {
             Check.NotNull(queryModelVisitor, nameof(queryModelVisitor));
 
@@ -53,8 +63,7 @@ namespace Microsoft.Data.Entity.Query.ExpressionVisitors
                 _querySources.Add(querySourceReferenceExpression.ReferencedQuerySource, 0);
             }
 
-            if (_queryModelVisitor.QueryCompilationContext.Model
-                .FindEntityType(querySourceReferenceExpression.Type) != null)
+            if (_model.FindEntityType(querySourceReferenceExpression.Type) != null)
             {
                 _querySources[querySourceReferenceExpression.ReferencedQuerySource]++;
             }

@@ -138,8 +138,17 @@ namespace Microsoft.Data.Entity.SqlServer.FunctionalTests
         {
             var selectExpression = new SelectExpression();
 
-            return new CommandBuilder(
-                () => new DefaultQuerySqlGenerator(selectExpression, new SqlServerTypeMapper()), new UntypedValueBufferFactoryFactory());
+            var commandBuilder = new CommandBuilder(
+                new UntypedValueBufferFactoryFactory(),
+                new SqlServerTypeMapper());
+
+            commandBuilder.Initialize(
+                () => new DefaultQuerySqlGenerator(new ParameterNameGeneratorFactory())
+                {
+                    SelectExpression = selectExpression
+                });
+
+            return commandBuilder;
         }
 
         [Fact]
@@ -338,8 +347,8 @@ namespace Microsoft.Data.Entity.SqlServer.FunctionalTests
             var text = source.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
 
             var matchQuery = from word in text
-                where word.Contains(searchTerm)
-                select word;
+                             where word.Contains(searchTerm)
+                             select word;
 
             return matchQuery.Count();
         }

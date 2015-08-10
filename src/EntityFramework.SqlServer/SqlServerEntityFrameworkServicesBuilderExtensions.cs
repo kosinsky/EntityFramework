@@ -5,6 +5,7 @@ using JetBrains.Annotations;
 using Microsoft.Data.Entity.Infrastructure;
 using Microsoft.Data.Entity.Migrations;
 using Microsoft.Data.Entity.Query;
+using Microsoft.Data.Entity.Query.Sql;
 using Microsoft.Data.Entity.SqlServer;
 using Microsoft.Data.Entity.SqlServer.Metadata;
 using Microsoft.Data.Entity.SqlServer.Update;
@@ -55,7 +56,10 @@ namespace Microsoft.Framework.DependencyInjection
         private static IServiceCollection AddQuery(this IServiceCollection serviceCollection)
         {
             return serviceCollection
-                .AddScoped<SqlServerQueryCompilationContextFactory>();
+                .AddScoped<SqlServerQueryCompilationContextFactory>()
+                .AddScoped<SqlServerQuerySqlGeneratorFactory>()
+                .AddTransient<SqlServerQueryCompilationContext>()
+                .AddTransient<SqlServerQuerySqlGenerator>();
         }
     }
 }

@@ -17,11 +17,11 @@ namespace Microsoft.Data.Entity.Query.ExpressionVisitors
 {
     public class MemberAccessBindingExpressionVisitor : RelinqExpressionVisitor
     {
-        private readonly QuerySourceMapping _querySourceMapping;
-        private readonly EntityQueryModelVisitor _queryModelVisitor;
-        private readonly bool _inProjection;
+        private QuerySourceMapping _querySourceMapping;
+        private EntityQueryModelVisitor _queryModelVisitor;
+        private bool _inProjection;
 
-        public MemberAccessBindingExpressionVisitor(
+        public virtual void Initialize(
             [NotNull] QuerySourceMapping querySourceMapping,
             [NotNull] EntityQueryModelVisitor queryModelVisitor,
             bool inProjection)
@@ -94,7 +94,7 @@ namespace Microsoft.Data.Entity.Query.ExpressionVisitors
                 {
                     newExpression
                         = Expression.Call(
-                            _queryModelVisitor.LinqOperatorProvider.ToOrdered
+                            _queryModelVisitor.QueryCompilationContext.LinqOperatorProvider.ToOrdered
                                 .MakeGenericMethod(newExpression.Type.GenericTypeArguments[0]),
                             newExpression);
                 }
@@ -102,7 +102,7 @@ namespace Microsoft.Data.Entity.Query.ExpressionVisitors
                 {
                     newExpression
                         = Expression.Call(
-                            _queryModelVisitor.LinqOperatorProvider.ToEnumerable
+                            _queryModelVisitor.QueryCompilationContext.LinqOperatorProvider.ToEnumerable
                                 .MakeGenericMethod(newExpression.Type.GenericTypeArguments[0]),
                             newExpression);
                 }

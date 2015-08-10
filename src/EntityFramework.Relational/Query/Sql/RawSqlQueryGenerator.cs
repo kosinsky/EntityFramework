@@ -17,30 +17,33 @@ namespace Microsoft.Data.Entity.Query.Sql
 {
     public class RawSqlQueryGenerator : ISqlQueryGenerator
     {
-        private readonly SelectExpression _selectExpression;
+        private readonly List<CommandParameter> _commandParameters = new List<CommandParameter>();
         private readonly IParameterNameGeneratorFactory _parameterNameGeneratorFactory;
-        private readonly string _sql;
-        private readonly object[] _inputParameters;
 
-        public RawSqlQueryGenerator(
+        private SelectExpression _selectExpression;
+        private string _sql;
+        private object[] _inputParameters;
+
+        public RawSqlQueryGenerator([NotNull] IParameterNameGeneratorFactory parameterNameGeneratorFactory)
+        {
+            Check.NotNull(parameterNameGeneratorFactory, nameof(parameterNameGeneratorFactory));
+
+            _parameterNameGeneratorFactory = parameterNameGeneratorFactory;
+        }
+
+        public virtual void Initialize(
             [NotNull] SelectExpression selectExpression,
             [NotNull] string sql,
-            [NotNull] object[] parameters,
-            [NotNull] IRelationalTypeMapper typeMapper)
+            [NotNull] object[] parameters)
         {
             Check.NotNull(selectExpression, nameof(selectExpression));
             Check.NotNull(sql, nameof(sql));
             Check.NotNull(parameters, nameof(parameters));
-            Check.NotNull(typeMapper, nameof(typeMapper));
 
             _selectExpression = selectExpression;
             _sql = sql;
             _inputParameters = parameters;
-            TypeMapper = typeMapper;
-            _parameterNameGeneratorFactory = new ParameterNameGeneratorFactory();
         }
-
-        public virtual IRelationalTypeMapper TypeMapper { get; }
 
         protected virtual IParameterNameGeneratorFactory ParameterNameGeneratorFactory
             => _parameterNameGeneratorFactory;

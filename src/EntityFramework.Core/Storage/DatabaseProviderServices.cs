@@ -7,6 +7,8 @@ using Microsoft.Data.Entity.Infrastructure;
 using Microsoft.Data.Entity.Internal;
 using Microsoft.Data.Entity.Metadata.Conventions.Internal;
 using Microsoft.Data.Entity.Query;
+using Microsoft.Data.Entity.Query.ExpressionVisitors;
+using Microsoft.Data.Entity.Query.Internal;
 using Microsoft.Data.Entity.Utilities;
 using Microsoft.Data.Entity.ValueGeneration;
 using Microsoft.Framework.DependencyInjection;
@@ -31,6 +33,10 @@ namespace Microsoft.Data.Entity.Storage
         public virtual IConventionSetBuilder ConventionSetBuilder => null;
         public virtual IValueGeneratorSelector ValueGeneratorSelector => GetService<ValueGeneratorSelector>();
         public virtual IModelValidator ModelValidator => GetService<LoggingModelValidator>();
+        public virtual ICompiledQueryCacheKeyGenerator CompiledQueryCacheKeyGenerator => GetService<CompiledQueryCacheKeyGenerator>();
+        public virtual IExpressionPrinter ExpressionPrinter => GetService<ExpressionPrinter>();
+        public virtual IResultOperatorHandler ResultOperatorHandler => GetService<ResultOperatorHandler>();
+        public virtual IProjectionExpressionVisitorFactory ProjectionExpressionVisitorFactory => GetService<ProjectionExpressionVisitorFactory>();
 
         public abstract IDatabase Database { get; }
         public abstract IDatabaseCreator Creator { get; }
@@ -38,7 +44,7 @@ namespace Microsoft.Data.Entity.Storage
         public abstract IValueGeneratorCache ValueGeneratorCache { get; }
         public abstract IQueryContextFactory QueryContextFactory { get; }
         public abstract IQueryCompilationContextFactory QueryCompilationContextFactory { get; }
-        public virtual ICompiledQueryCacheKeyGenerator CompiledQueryCacheKeyGenerator
-            => GetService<CompiledQueryCacheKeyGenerator>();
+        public abstract IEntityQueryableExpressionVisitorFactory EntityQueryableExpressionVisitorFactory { get; }
+        public abstract IEntityQueryModelVisitorFactory EntityQueryModelVisitorFactory { get; }
     }
 }

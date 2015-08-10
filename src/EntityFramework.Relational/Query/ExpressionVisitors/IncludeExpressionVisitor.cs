@@ -9,6 +9,7 @@ using System.Reflection;
 using JetBrains.Annotations;
 using Microsoft.Data.Entity.Metadata;
 using Microsoft.Data.Entity.Query.Expressions;
+using Microsoft.Data.Entity.Query.Sql;
 using Microsoft.Data.Entity.Utilities;
 using Remotion.Linq.Clauses;
 
@@ -16,15 +17,37 @@ namespace Microsoft.Data.Entity.Query.ExpressionVisitors
 {
     public class IncludeExpressionVisitor : ExpressionVisitorBase
     {
-        private readonly IQuerySource _querySource;
-        private readonly IReadOnlyList<INavigation> _navigationPath;
-        private readonly RelationalQueryCompilationContext _queryCompilationContext;
-        private readonly IReadOnlyList<int> _queryIndexes;
-        private readonly bool _querySourceRequiresTracking;
+        private readonly IMaterializerFactory _materializerFactory;
+        private readonly ICommandBuilderFactory _commandBuilderFactory;
+        private readonly IRelationalMetadataExtensionProvider _relationalMetadataExtensionProvider;
+        private readonly ISqlQueryGeneratorFactory _sqlQueryGeneratorFactory;
+
+        private IQuerySource _querySource;
+        private IReadOnlyList<INavigation> _navigationPath;
+        private RelationalQueryCompilationContext _queryCompilationContext;
+        private IReadOnlyList<int> _queryIndexes;
+        private bool _querySourceRequiresTracking;
 
         private bool _foundCreateEntityForQuerySource;
 
         public IncludeExpressionVisitor(
+            [NotNull] IMaterializerFactory materializerFactory,
+            [NotNull] ICommandBuilderFactory commandBuilderFactory,
+            [NotNull] IRelationalMetadataExtensionProvider relationalMetadataExtensionProvider,
+            [NotNull] ISqlQueryGeneratorFactory sqlQueryGeneratorFactory)
+        {
+            Check.NotNull(materializerFactory, nameof(materializerFactory));
+            Check.NotNull(commandBuilderFactory, nameof(commandBuilderFactory));
+            Check.NotNull(relationalMetadataExtensionProvider, nameof(relationalMetadataExtensionProvider));
+            Check.NotNull(sqlQueryGeneratorFactory, nameof(sqlQueryGeneratorFactory));
+
+            _materializerFactory = materializerFactory;
+            _commandBuilderFactory = commandBuilderFactory;
+            _relationalMetadataExtensionProvider = relationalMetadataExtensionProvider;
+            _sqlQueryGeneratorFactory = sqlQueryGeneratorFactory;
+        }
+
+        public virtual void Initialize(
             [NotNull] IQuerySource querySource,
             [NotNull] IReadOnlyList<INavigation> navigationPath,
             [NotNull] RelationalQueryCompilationContext queryCompilationContext,
@@ -98,7 +121,7 @@ namespace Microsoft.Data.Entity.Query.ExpressionVisitors
                 navigationCount++;
 
                 var targetEntityType = navigation.GetTargetType();
-                var targetTableName = _queryCompilationContext.RelationalExtensions.For(targetEntityType).TableName;
+                var targetTableName = _relationalMetadataExtensionProvider.For(targetEntityType).TableName;
                 var targetTableAlias = targetTableName[0].ToString().ToLower();
 
                 if (!navigation.IsCollection())
@@ -106,7 +129,7 @@ namespace Microsoft.Data.Entity.Query.ExpressionVisitors
                     var joinedTableExpression
                         = new TableExpression(
                             targetTableName,
-                            _queryCompilationContext.RelationalExtensions.For(targetEntityType).Schema,
+                            _relationalMetadataExtensionProvider.For(targetEntityType).Schema,
                             targetTableAlias,
                             querySource);
 
@@ -125,18 +148,16 @@ namespace Microsoft.Data.Entity.Query.ExpressionVisitors
                                 .AddOuterJoin(joinedTableExpression);
 
                     var materializer
-                        = new MaterializerFactory(
-                            _queryCompilationContext.EntityMaterializerSource)
+                        = _materializerFactory
                             .CreateMaterializer(
                                 targetEntityType,
                                 selectExpression,
                                 (p, se) => se.AddToProjection(
                                     new AliasExpression(
                                         new ColumnExpression(
-                                            _queryCompilationContext.RelationalExtensions.For(p).ColumnName,
+                                            _relationalMetadataExtensionProvider.For(p).ColumnName,
                                             p,
                                             joinedTableExpression))) - valueBufferOffset,
-                                _queryCompilationContext.RelationalExtensions,
                                 querySource: null);
 
                     joinExpression.Predicate
@@ -169,7 +190,7 @@ namespace Microsoft.Data.Entity.Query.ExpressionVisitors
                     {
                         selectExpression
                             .AddToOrderBy(
-                                _queryCompilationContext.RelationalExtensions.For(property).ColumnName,
+                                _relationalMetadataExtensionProvider.For(property).ColumnName,
                                 property,
                                 principalTable,
                                 OrderingDirection.Asc);
@@ -180,23 +201,21 @@ namespace Microsoft.Data.Entity.Query.ExpressionVisitors
                     targetTableExpression
                         = new TableExpression(
                             targetTableName,
-                            _queryCompilationContext.RelationalExtensions.For(targetEntityType).Schema,
+                            _relationalMetadataExtensionProvider.For(targetEntityType).Schema,
                             targetTableAlias,
                             querySource);
 
                     targetSelectExpression.AddTable(targetTableExpression);
 
                     var materializer
-                        = new MaterializerFactory(
-                            _queryCompilationContext.EntityMaterializerSource)
+                        = _materializerFactory
                             .CreateMaterializer(
                                 targetEntityType,
                                 targetSelectExpression,
                                 (p, se) => se.AddToProjection(
-                                    _queryCompilationContext.RelationalExtensions.For(p).ColumnName,
+                                    _relationalMetadataExtensionProvider.For(p).ColumnName,
                                     p,
                                     querySource),
-                                _queryCompilationContext.RelationalExtensions,
                                 querySource: null);
 
                     var innerJoinSelectExpression
@@ -231,9 +250,9 @@ namespace Microsoft.Data.Entity.Query.ExpressionVisitors
                                     _queryCompilationContext.QueryMethodProvider.QueryMethod,
                                     EntityQueryModelVisitor.QueryContextParameter,
                                     Expression.Constant(
-                                        new CommandBuilder(
-                                            () => _queryCompilationContext.CreateSqlQueryGenerator(targetSelectExpression),
-                                            _queryCompilationContext.ValueBufferFactoryFactory)),
+                                        _commandBuilderFactory.Create(
+                                            () => _sqlQueryGeneratorFactory
+                                                .CreateGenerator(targetSelectExpression))),
                                     Expression.Constant(queryIndex, typeof(int?))),
                                 materializer));
                 }
@@ -341,7 +360,7 @@ namespace Microsoft.Data.Entity.Query.ExpressionVisitors
             if (projections.Count == 0)
             {
                 return new ColumnExpression(
-                    _queryCompilationContext.RelationalExtensions.For(property).ColumnName,
+                    _relationalMetadataExtensionProvider.For(property).ColumnName,
                     property,
                     tableExpression);
             }

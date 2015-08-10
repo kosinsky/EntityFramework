@@ -10,9 +10,9 @@ namespace Microsoft.Data.Entity.Query.ExpressionVisitors
 {
     public class CompositePredicateExpressionVisitor : RelinqExpressionVisitor
     {
-        private readonly bool _useRelationalNullSemantics;
+        private bool _useRelationalNullSemantics;
 
-        public CompositePredicateExpressionVisitor(bool useRelationalNullSemantics)
+        public virtual void Initialize(bool useRelationalNullSemantics)
         {
             _useRelationalNullSemantics = useRelationalNullSemantics;
         }

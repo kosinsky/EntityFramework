@@ -18,8 +18,6 @@ namespace Microsoft.Data.Entity.Query.ExpressionVisitors
 {
     public class NavigationRewritingExpressionVisitor : RelinqExpressionVisitor
     {
-        private readonly EntityQueryModelVisitor _queryModelVisitor;
-
         private readonly List<NavigationJoin> _navigationJoins = new List<NavigationJoin>();
 
         private class NavigationJoin
@@ -68,18 +66,18 @@ namespace Microsoft.Data.Entity.Query.ExpressionVisitors
                 => RemoveNavigationJoin(NavigationJoins, navigationJoin);
         }
 
+        private EntityQueryModelVisitor _queryModelVisitor;        
         private IEntityQueryProvider _entityQueryProvider;
 
-        public NavigationRewritingExpressionVisitor([NotNull] EntityQueryModelVisitor queryModelVisitor)
+        public virtual void Rewrite(
+            [NotNull] EntityQueryModelVisitor queryModelVisitor,
+            [NotNull] QueryModel queryModel)
         {
             Check.NotNull(queryModelVisitor, nameof(queryModelVisitor));
+            Check.NotNull(queryModel, nameof(queryModel));
 
             _queryModelVisitor = queryModelVisitor;
-        }
-
-        public virtual void Rewrite([NotNull] QueryModel queryModel)
-        {
-            Check.NotNull(queryModel, nameof(queryModel));
+            _entityQueryProvider = null;
 
             queryModel.TransformExpressions(Visit);
 
