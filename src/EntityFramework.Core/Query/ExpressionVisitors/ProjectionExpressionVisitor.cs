@@ -5,12 +5,27 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using JetBrains.Annotations;
+using Microsoft.Data.Entity.Utilities;
+using Remotion.Linq.Clauses;
 using Remotion.Linq.Clauses.Expressions;
 
 namespace Microsoft.Data.Entity.Query.ExpressionVisitors
 {
-    public class ProjectionExpressionVisitor : DefaultQueryExpressionVisitor
+    public class ProjectionExpressionVisitor : DefaultQueryExpressionVisitor, IProjectionExpressionVisitor
     {
+        public virtual Expression VisitProjection(
+            [NotNull] EntityQueryModelVisitor queryModelVisitor,
+            [NotNull] IQuerySource querySource,
+            [NotNull] Expression expression)
+        {
+            Check.NotNull(queryModelVisitor, nameof(queryModelVisitor));
+            Check.NotNull(querySource, nameof(querySource));
+            Check.NotNull(expression, nameof(expression));
+
+            return VisitQueryExpression(queryModelVisitor, expression);
+        }
+
         protected override Expression VisitSubQuery(SubQueryExpression subQueryExpression)
         {
             var queryModelVisitor = CreateQueryModelVisitor();

@@ -21,34 +21,29 @@ namespace Microsoft.Data.Entity.Query
 
         private readonly IEntityKeyFactorySource _entityKeyFactorySource;
         private readonly IClrAccessorSource<IClrPropertyGetter> _clrPropertyGetterSource;
-
-        private QuerySourceReferenceExpression _querySourceReferenceExpression;
-        private QueryCompilationContext _queryCompilationContext;
-        private IEntityType _entityType;
-        private IReadOnlyList<IProperty> _entityKeyProperties;
-        private EntityKeyFactory _entityKeyFactory;
-        private IReadOnlyList<IReadOnlyList<INavigation>> _includedNavigationPaths;
-        private IDictionary<INavigation, IncludedEntityTrackingInfo> _includedEntityTrackingInfos;
+        private readonly QuerySourceReferenceExpression _querySourceReferenceExpression;
+        private readonly QueryCompilationContext _queryCompilationContext;
+        private readonly IEntityType _entityType;
+        private readonly IReadOnlyList<IProperty> _entityKeyProperties;
+        private readonly EntityKeyFactory _entityKeyFactory;
+        private readonly IReadOnlyList<IReadOnlyList<INavigation>> _includedNavigationPaths;
+        private readonly IDictionary<INavigation, IncludedEntityTrackingInfo> _includedEntityTrackingInfos;
 
         public EntityTrackingInfo(
             [NotNull] IEntityKeyFactorySource entityKeyFactorySource,
-            [NotNull] IClrAccessorSource<IClrPropertyGetter> clrPropertyGetterSource)
-        {
-            Check.NotNull(entityKeyFactorySource, nameof(entityKeyFactorySource));
-            Check.NotNull(clrPropertyGetterSource, nameof(clrPropertyGetterSource));
-
-            _entityKeyFactorySource = entityKeyFactorySource;
-            _clrPropertyGetterSource = clrPropertyGetterSource;
-        }
-
-        public virtual void Initialize(
+            [NotNull] IClrAccessorSource<IClrPropertyGetter> clrPropertyGetterSource,
             [NotNull] QueryCompilationContext queryCompilationContext,
             [NotNull] QuerySourceReferenceExpression querySourceReferenceExpression,
             [NotNull] IEntityType entityType)
         {
+            Check.NotNull(entityKeyFactorySource, nameof(entityKeyFactorySource));
+            Check.NotNull(clrPropertyGetterSource, nameof(clrPropertyGetterSource));
             Check.NotNull(querySourceReferenceExpression, nameof(querySourceReferenceExpression));
             Check.NotNull(entityType, nameof(entityType));
             Check.NotNull(queryCompilationContext, nameof(queryCompilationContext));
+
+            _entityKeyFactorySource = entityKeyFactorySource;
+            _clrPropertyGetterSource = clrPropertyGetterSource;
 
             _querySourceReferenceExpression = querySourceReferenceExpression;
             _entityType = entityType;

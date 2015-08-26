@@ -38,15 +38,15 @@ namespace Microsoft.Data.Entity.Query
 
         private readonly IModel _model;
         private readonly IQueryOptimizer _queryOptimizer;
-        private readonly INavigationRewritingExpressionVisitorFactory _navigationRewritingExpressionVisitorFactory;
+        private readonly INavigationRewritingExpressionVisitor _navigationRewritingExpressionVisitor;
         private readonly ISubQueryMemberPushDownExpressionVisitor _subQueryMemberPushDownExpressionVisitor;
-        private readonly IQuerySourceTracingExpressionVisitorFactory _querySourceTracingExpressionVisitorFactory;
-        private readonly IEntityResultFindingExpressionVisitorFactory _entityResultFindingExpressionVisitorFactory;
+        private readonly IQuerySourceTracingExpressionVisitor _querySourceTracingExpressionVisitor;
+        private readonly IEntityResultFindingExpressionVisitor _entityResultFindingExpressionVisitor;
         private readonly ITaskBlockingExpressionVisitor _taskBlockingExpressionVisitor;
-        private readonly IMemberAccessBindingExpressionVisitorFactory _memberAccessBindingExpressionVisitorFactory;
-        private readonly IOrderingExpressionVisitorFactory _orderingExpressionVisitorFactory;
-        private readonly IProjectionExpressionVisitorFactory _projectionExpressionVisitorFactory;
-        private readonly IEntityQueryableExpressionVisitorFactory _entityQueryableExpressionVisitorFactory;
+        private readonly IMemberAccessBindingExpressionVisitor _memberAccessBindingExpressionVisitor;
+        private readonly IOrderingExpressionVisitor _orderingExpressionVisitor;
+        private readonly IProjectionExpressionVisitor _projectionExpressionVisitor;
+        private readonly IEntityQueryableExpressionVisitor _entityQueryableExpressionVisitor;
         private readonly IQueryAnnotationExtractor _queryAnnotationExtractor;
         private readonly IResultOperatorHandler _resultOperatorHandler;
         private readonly IEntityMaterializerSource _entityMaterializerSource;
@@ -62,15 +62,15 @@ namespace Microsoft.Data.Entity.Query
         public EntityQueryModelVisitor(
             [NotNull] IModel model,
             [NotNull] IQueryOptimizer queryOptimizer,
-            [NotNull] INavigationRewritingExpressionVisitorFactory navigationRewritingExpressionVisitorFactory,
+            [NotNull] INavigationRewritingExpressionVisitor navigationRewritingExpressionVisitor,
             [NotNull] ISubQueryMemberPushDownExpressionVisitor subQueryMemberPushDownExpressionVisitor,
-            [NotNull] IQuerySourceTracingExpressionVisitorFactory querySourceTracingExpressionVisitorFactory,
-            [NotNull] IEntityResultFindingExpressionVisitorFactory entityResultFindingExpressionVisitorFactory,
+            [NotNull] IQuerySourceTracingExpressionVisitor querySourceTracingExpressionVisitor,
+            [NotNull] IEntityResultFindingExpressionVisitor entityResultFindingExpressionVisitor,
             [NotNull] ITaskBlockingExpressionVisitor taskBlockingExpressionVisitor,
-            [NotNull] IMemberAccessBindingExpressionVisitorFactory memberAccessBindingExpressionVisitorFactory,
-            [NotNull] IOrderingExpressionVisitorFactory orderingExpressionVisitorFactory,
-            [NotNull] IProjectionExpressionVisitorFactory projectionExpressionVisitorFactory,
-            [NotNull] IEntityQueryableExpressionVisitorFactory entityQueryableExpressionVisitorFactory,
+            [NotNull] IMemberAccessBindingExpressionVisitor memberAccessBindingExpressionVisitor,
+            [NotNull] IOrderingExpressionVisitor orderingExpressionVisitor,
+            [NotNull] IProjectionExpressionVisitor projectionExpressionVisitor,
+            [NotNull] IEntityQueryableExpressionVisitor entityQueryableExpressionVisitor,
             [NotNull] IQueryAnnotationExtractor queryAnnotationExtractor,
             [NotNull] IResultOperatorHandler resultOperatorHandler,
             [NotNull] IEntityMaterializerSource entityMaterializerSource,
@@ -78,15 +78,15 @@ namespace Microsoft.Data.Entity.Query
         {
             Check.NotNull(model, nameof(model));
             Check.NotNull(queryOptimizer, nameof(queryOptimizer));
-            Check.NotNull(navigationRewritingExpressionVisitorFactory, nameof(navigationRewritingExpressionVisitorFactory));
+            Check.NotNull(navigationRewritingExpressionVisitor, nameof(navigationRewritingExpressionVisitor));
             Check.NotNull(subQueryMemberPushDownExpressionVisitor, nameof(subQueryMemberPushDownExpressionVisitor));
-            Check.NotNull(querySourceTracingExpressionVisitorFactory, nameof(querySourceTracingExpressionVisitorFactory));
-            Check.NotNull(entityResultFindingExpressionVisitorFactory, nameof(entityResultFindingExpressionVisitorFactory));
+            Check.NotNull(querySourceTracingExpressionVisitor, nameof(querySourceTracingExpressionVisitor));
+            Check.NotNull(entityResultFindingExpressionVisitor, nameof(entityResultFindingExpressionVisitor));
             Check.NotNull(taskBlockingExpressionVisitor, nameof(taskBlockingExpressionVisitor));
-            Check.NotNull(memberAccessBindingExpressionVisitorFactory, nameof(memberAccessBindingExpressionVisitorFactory));
-            Check.NotNull(orderingExpressionVisitorFactory, nameof(orderingExpressionVisitorFactory));
-            Check.NotNull(projectionExpressionVisitorFactory, nameof(projectionExpressionVisitorFactory));
-            Check.NotNull(entityQueryableExpressionVisitorFactory, nameof(entityQueryableExpressionVisitorFactory));
+            Check.NotNull(memberAccessBindingExpressionVisitor, nameof(memberAccessBindingExpressionVisitor));
+            Check.NotNull(orderingExpressionVisitor, nameof(orderingExpressionVisitor));
+            Check.NotNull(projectionExpressionVisitor, nameof(projectionExpressionVisitor));
+            Check.NotNull(entityQueryableExpressionVisitor, nameof(entityQueryableExpressionVisitor));
             Check.NotNull(queryAnnotationExtractor, nameof(queryAnnotationExtractor));
             Check.NotNull(resultOperatorHandler, nameof(resultOperatorHandler));
             Check.NotNull(entityMaterializerSource, nameof(entityMaterializerSource));
@@ -94,15 +94,15 @@ namespace Microsoft.Data.Entity.Query
 
             _model = model;
             _queryOptimizer = queryOptimizer;
-            _navigationRewritingExpressionVisitorFactory = navigationRewritingExpressionVisitorFactory;
+            _navigationRewritingExpressionVisitor = navigationRewritingExpressionVisitor;
             _subQueryMemberPushDownExpressionVisitor = subQueryMemberPushDownExpressionVisitor;
-            _querySourceTracingExpressionVisitorFactory = querySourceTracingExpressionVisitorFactory;
-            _entityResultFindingExpressionVisitorFactory = entityResultFindingExpressionVisitorFactory;
+            _querySourceTracingExpressionVisitor = querySourceTracingExpressionVisitor;
+            _entityResultFindingExpressionVisitor = entityResultFindingExpressionVisitor;
             _taskBlockingExpressionVisitor = taskBlockingExpressionVisitor;
-            _memberAccessBindingExpressionVisitorFactory = memberAccessBindingExpressionVisitorFactory;
-            _orderingExpressionVisitorFactory = orderingExpressionVisitorFactory;
-            _projectionExpressionVisitorFactory = projectionExpressionVisitorFactory;
-            _entityQueryableExpressionVisitorFactory = entityQueryableExpressionVisitorFactory;
+            _memberAccessBindingExpressionVisitor = memberAccessBindingExpressionVisitor;
+            _orderingExpressionVisitor = orderingExpressionVisitor;
+            _projectionExpressionVisitor = projectionExpressionVisitor;
+            _entityQueryableExpressionVisitor = entityQueryableExpressionVisitor;
             _queryAnnotationExtractor = queryAnnotationExtractor;
             _resultOperatorHandler = resultOperatorHandler;
             _entityMaterializerSource = entityMaterializerSource;
@@ -219,8 +219,7 @@ namespace Microsoft.Data.Entity.Query
 
             _queryOptimizer.Optimize(QueryCompilationContext.QueryAnnotations, queryModel);
 
-            _navigationRewritingExpressionVisitorFactory.Create()
-                .Rewrite(this, queryModel);
+            _navigationRewritingExpressionVisitor.Rewrite(this, queryModel);
 
             queryModel.TransformExpressions(_subQueryMemberPushDownExpressionVisitor.Visit);
 
@@ -321,8 +320,7 @@ namespace Microsoft.Data.Entity.Query
             foreach (var includeSpecification in includeSpecifications)
             {
                 var resultQuerySourceReferenceExpression
-                    = _querySourceTracingExpressionVisitorFactory
-                        .Create()
+                    = _querySourceTracingExpressionVisitor
                         .FindResultQuerySourceReferenceExpression(
                             queryModel.SelectClause.Selector,
                             includeSpecification.QuerySource);
@@ -402,8 +400,8 @@ namespace Microsoft.Data.Entity.Query
             }
 
             var entityTrackingInfos
-                = _entityResultFindingExpressionVisitorFactory.Create(QueryCompilationContext)
-                    .FindEntitiesInResult(queryModel.SelectClause.Selector);
+                = _entityResultFindingExpressionVisitor
+                    .FindEntitiesInResult(QueryCompilationContext, queryModel.SelectClause.Selector);
 
             if (entityTrackingInfos.Any())
             {
@@ -857,9 +855,8 @@ namespace Microsoft.Data.Entity.Query
             }
 
             var expression
-                = _orderingExpressionVisitorFactory
-                    .Create(this)
-                    .Visit(ordering.Expression);
+                = _orderingExpressionVisitor
+                    .VisitOrder(this, ordering.Expression);
 
             if (expression != null)
             {
@@ -890,9 +887,8 @@ namespace Microsoft.Data.Entity.Query
 
             var selector
                 = ReplaceClauseReferences(
-                    _projectionExpressionVisitorFactory
-                        .Create(this, queryModel.MainFromClause)
-                        .Visit(selectClause.Selector),
+                    _projectionExpressionVisitor
+                        .VisitProjection(this, queryModel.MainFromClause, selectClause.Selector),
                     inProjection: true);
 
             _expression
@@ -970,15 +966,17 @@ namespace Microsoft.Data.Entity.Query
             return QueryCompilationContext.LinqOperatorProvider
                 .AdjustSequenceType(
                     ReplaceClauseReferences(
-                        _entityQueryableExpressionVisitorFactory
-                            .Create(this, querySource)
-                            .Visit(expression)));
+                        _entityQueryableExpressionVisitor
+                            .VisitEntityQueryable(this, querySource, expression)));
         }
 
         private Expression ReplaceClauseReferences(Expression expression, bool inProjection = false)
-            => _memberAccessBindingExpressionVisitorFactory
-                .Create(QueryCompilationContext.QuerySourceMapping, this, inProjection)
-                .Visit(expression);
+            => _memberAccessBindingExpressionVisitor
+                .VisitMemberAccess(
+                    QueryCompilationContext.QuerySourceMapping,
+                    this,
+                    inProjection,
+                    expression);
 
         public virtual Expression BindMethodCallToValueBuffer(
             [NotNull] MethodCallExpression methodCallExpression,

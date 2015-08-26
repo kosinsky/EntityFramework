@@ -12,7 +12,7 @@ using Remotion.Linq.Clauses.Expressions;
 
 namespace Microsoft.Data.Entity.Query.ExpressionVisitors
 {
-    public class EntityResultFindingExpressionVisitor : ExpressionVisitorBase
+    public class EntityResultFindingExpressionVisitor : ExpressionVisitorBase, IEntityResultFindingExpressionVisitor
     {
         private readonly IModel _model;
         private readonly IEntityTrackingInfoFactory _entityTrackingInfoFactory;
@@ -33,16 +33,14 @@ namespace Microsoft.Data.Entity.Query.ExpressionVisitors
             _entityTrackingInfoFactory = entityTrackingInfoFactory;
         }
 
-        public virtual void Initialize([NotNull] QueryCompilationContext queryCompilationContext)
+        public virtual IReadOnlyCollection<EntityTrackingInfo> FindEntitiesInResult(
+            [NotNull] QueryCompilationContext queryCompilationContext,
+            [NotNull] Expression expression)
         {
+            Check.NotNull(expression, nameof(expression));
             Check.NotNull(queryCompilationContext, nameof(queryCompilationContext));
 
             _queryCompilationContext = queryCompilationContext;
-        }
-
-        public virtual IReadOnlyCollection<EntityTrackingInfo> FindEntitiesInResult([NotNull] Expression expression)
-        {
-            Check.NotNull(expression, nameof(expression));
 
             _untrackedQuerySources
                 = new HashSet<IQuerySource>(

@@ -9,7 +9,7 @@ using Remotion.Linq.Clauses.Expressions;
 
 namespace Microsoft.Data.Entity.Query.ExpressionVisitors
 {
-    public class QuerySourceTracingExpressionVisitor : ExpressionVisitorBase
+    public class QuerySourceTracingExpressionVisitor : ExpressionVisitorBase, IQuerySourceTracingExpressionVisitor
     {
         private IQuerySource _targetQuerySource;
         private QuerySourceReferenceExpression _originQuerySourceReferenceExpression;

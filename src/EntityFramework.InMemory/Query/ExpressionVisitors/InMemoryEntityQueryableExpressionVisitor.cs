@@ -12,25 +12,13 @@ using Remotion.Linq.Clauses;
 
 namespace Microsoft.Data.Entity.Query.ExpressionVisitors
 {
-    public class InMemoryEntityQueryableExpressionVisitor : EntityQueryableExpressionVisitor
+    public class InMemoryEntityQueryableExpressionVisitor : EntityQueryableExpressionVisitor, IEntityQueryableExpressionVisitor
     {
         private readonly IModel _model;
         private readonly IEntityKeyFactorySource _entityKeyFactorySource;
         private readonly IMaterializerFactory _materializerFactory;
 
         private IQuerySource _querySource;
-
-        public virtual IQuerySource QuerySource
-        {
-            get { return _querySource; }
-            [param: NotNull]
-            set
-            {
-                Check.NotNull(value, nameof(value));
-
-                _querySource = value;
-            }
-        }
 
         public InMemoryEntityQueryableExpressionVisitor(
             [NotNull] IModel model,
@@ -46,16 +34,18 @@ namespace Microsoft.Data.Entity.Query.ExpressionVisitors
             _materializerFactory = materializerFactory;
         }
 
-        public virtual new InMemoryQueryModelVisitor QueryModelVisitor
+        public virtual Expression VisitEntityQueryable(
+            [NotNull] EntityQueryModelVisitor queryModelVisitor,
+            [NotNull] IQuerySource querySource,
+            [NotNull] Expression expression)
         {
-            get { return (InMemoryQueryModelVisitor)base.QueryModelVisitor; }
-            [param: NotNull]
-            set
-            {
-                Check.NotNull(value, nameof(value));
+            Check.NotNull(queryModelVisitor, nameof(queryModelVisitor));
+            Check.NotNull(querySource, nameof(querySource));
+            Check.NotNull(expression, nameof(expression));
 
-                base.QueryModelVisitor = value;
-            }
+            _querySource = querySource;
+
+            return VisitQueryExpression(queryModelVisitor, expression);
         }
 
         protected override Expression VisitEntityQueryable(Type elementType)

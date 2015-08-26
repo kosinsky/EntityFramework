@@ -15,7 +15,7 @@ using Remotion.Linq.Clauses;
 
 namespace Microsoft.Data.Entity.Query.ExpressionVisitors
 {
-    public class IncludeExpressionVisitor : ExpressionVisitorBase
+    public class IncludeExpressionVisitor : ExpressionVisitorBase, IIncludeExpressionVisitor
     {
         private readonly IMaterializerFactory _materializerFactory;
         private readonly ICommandBuilderFactory _commandBuilderFactory;
@@ -47,22 +47,27 @@ namespace Microsoft.Data.Entity.Query.ExpressionVisitors
             _sqlQueryGeneratorFactory = sqlQueryGeneratorFactory;
         }
 
-        public virtual void Initialize(
+        public virtual Expression VisitInclude(
             [NotNull] IQuerySource querySource,
             [NotNull] IReadOnlyList<INavigation> navigationPath,
             [NotNull] RelationalQueryCompilationContext queryCompilationContext,
             [NotNull] IReadOnlyList<int> queryIndexes,
+            [NotNull] Expression expression,
             bool querySourceRequiresTracking)
         {
             Check.NotNull(querySource, nameof(querySource));
             Check.NotNull(navigationPath, nameof(navigationPath));
             Check.NotNull(queryCompilationContext, nameof(queryCompilationContext));
+            Check.NotNull(queryIndexes, nameof(queryIndexes));
+            Check.NotNull(expression, nameof(expression));
 
             _querySource = querySource;
             _navigationPath = navigationPath;
             _queryCompilationContext = queryCompilationContext;
             _queryIndexes = queryIndexes;
             _querySourceRequiresTracking = querySourceRequiresTracking;
+
+            return Visit(expression);
         }
 
         protected override Expression VisitMethodCall(MethodCallExpression expression)

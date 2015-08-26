@@ -4,13 +4,25 @@
 using System.Linq.Expressions;
 using JetBrains.Annotations;
 using Microsoft.Data.Entity.Query.Expressions;
+using Microsoft.Data.Entity.Utilities;
 using Remotion.Linq.Parsing;
 
 namespace Microsoft.Data.Entity.Query.ExpressionVisitors
 {
-    public class CompositePredicateExpressionVisitor : RelinqExpressionVisitor
+    public class CompositePredicateExpressionVisitor : RelinqExpressionVisitor, ICompositePredicateExpressionVisitor
     {
         private bool _useRelationalNullSemantics;
+
+        public virtual Expression VisitCompositePredicate(
+            [NotNull] Expression expression,
+            bool useRelationalNullSemantics)
+        {
+            Check.NotNull(expression, nameof(expression));
+
+            _useRelationalNullSemantics = useRelationalNullSemantics;
+
+            return Visit(expression);
+        }
 
         public virtual void Initialize(bool useRelationalNullSemantics)
         {

@@ -10,34 +10,39 @@ using Remotion.Linq.Clauses;
 
 namespace Microsoft.Data.Entity.Query.ExpressionVisitors
 {
-    public class QueryFlatteningExpressionVisitor : ExpressionVisitorBase
+    public class QueryFlatteningExpressionVisitor : ExpressionVisitorBase, IQueryFlatteningExpressionVisitor
     {
         private IQuerySource _outerQuerySource;
         private IQuerySource _innerQuerySource;
         private RelationalQueryCompilationContext _relationalQueryCompilationContext;
-        private int _readerOffset;
         private MethodInfo _operatorToFlatten;
+        private int _readerOffset;
 
         private MethodCallExpression _outerSelectManyExpression;
         private Expression _outerShaperExpression;
         private Expression _outerCommandBuilder;
 
-        public virtual void Initialize(
+        public virtual Expression FlattenExpression(
             [NotNull] IQuerySource outerQuerySource,
             [NotNull] IQuerySource innerQuerySource,
             [NotNull] RelationalQueryCompilationContext relationalQueryCompilationContext,
-            int readerOffset,
-            [NotNull] MethodInfo operatorToFlatten)
+            [NotNull] MethodInfo operatorToFlatten,
+            [NotNull] Expression expression,
+            int readerOffset)
         {
             Check.NotNull(outerQuerySource, nameof(outerQuerySource));
             Check.NotNull(innerQuerySource, nameof(innerQuerySource));
+            Check.NotNull(relationalQueryCompilationContext, nameof(relationalQueryCompilationContext));
             Check.NotNull(operatorToFlatten, nameof(operatorToFlatten));
+            Check.NotNull(expression, nameof(expression));
 
             _outerQuerySource = outerQuerySource;
             _innerQuerySource = innerQuerySource;
             _relationalQueryCompilationContext = relationalQueryCompilationContext;
-            _readerOffset = readerOffset;
             _operatorToFlatten = operatorToFlatten;
+            _readerOffset = readerOffset;
+
+            return Visit(expression);
         }
 
         protected override Expression VisitMethodCall(MethodCallExpression methodCallExpression)

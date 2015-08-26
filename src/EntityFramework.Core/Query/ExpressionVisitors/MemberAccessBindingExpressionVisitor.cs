@@ -15,23 +15,27 @@ using Remotion.Linq.Parsing;
 
 namespace Microsoft.Data.Entity.Query.ExpressionVisitors
 {
-    public class MemberAccessBindingExpressionVisitor : RelinqExpressionVisitor
+    public class MemberAccessBindingExpressionVisitor : RelinqExpressionVisitor, IMemberAccessBindingExpressionVisitor
     {
         private QuerySourceMapping _querySourceMapping;
         private EntityQueryModelVisitor _queryModelVisitor;
         private bool _inProjection;
 
-        public virtual void Initialize(
+        public virtual Expression VisitMemberAccess(
             [NotNull] QuerySourceMapping querySourceMapping,
             [NotNull] EntityQueryModelVisitor queryModelVisitor,
-            bool inProjection)
+            bool inProjection,
+            [NotNull] Expression expression)
         {
             Check.NotNull(querySourceMapping, nameof(querySourceMapping));
             Check.NotNull(queryModelVisitor, nameof(queryModelVisitor));
+            Check.NotNull(expression, nameof(expression));
 
             _querySourceMapping = querySourceMapping;
             _queryModelVisitor = queryModelVisitor;
             _inProjection = inProjection;
+
+            return Visit(expression);
         }
 
         protected override Expression VisitNew(NewExpression newExpression)

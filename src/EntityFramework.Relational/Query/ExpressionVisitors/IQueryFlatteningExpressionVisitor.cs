@@ -8,13 +8,14 @@ using Remotion.Linq.Clauses;
 
 namespace Microsoft.Data.Entity.Query.ExpressionVisitors
 {
-    public interface IQueryFlatteningExpressionVisitorFactory
+    public interface IQueryFlatteningExpressionVisitor
     {
-        ExpressionVisitor Create(
+        Expression FlattenExpression(
             [NotNull] IQuerySource outerQuerySource,
             [NotNull] IQuerySource innerQuerySource,
-            [NotNull] RelationalQueryCompilationContext relationalQueryCompilationContext,
-            int readerOffset,
-            [NotNull] MethodInfo operatorToFlatten);
+            [NotNull] RelationalQueryCompilationContext relationalQueryCompilationContext,            
+            [NotNull] MethodInfo operatorToFlatten,
+            [NotNull] Expression expression,
+            int readerOffset);
     }
 }

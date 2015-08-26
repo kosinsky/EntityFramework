@@ -30,8 +30,8 @@ namespace Microsoft.Data.Entity.Storage
         public override IModelValidator ModelValidator => GetService<RelationalModelValidator>();
         public override IQueryCompilationContextFactory QueryCompilationContextFactory => GetService<RelationalQueryCompilationContextFactory>();
         public override IExpressionPrinter ExpressionPrinter => GetService<RelationalExpressionPrinter>();
-        public override IEntityQueryableExpressionVisitorFactory EntityQueryableExpressionVisitorFactory => GetService<RelationalEntityQueryableExpressionVisitorFactory>();
-        public override IProjectionExpressionVisitorFactory ProjectionExpressionVisitorFactory => GetService<RelationalProjectionExpressionVisitorFactory>();
+        public override IEntityQueryableExpressionVisitor EntityQueryableExpressionVisitor => GetService<RelationalEntityQueryableExpressionVisitor>();
+        public override IProjectionExpressionVisitor ProjectionExpressionVisitor => GetService<RelationalProjectionExpressionVisitor>();
         public override IEntityQueryModelVisitorFactory EntityQueryModelVisitorFactory => GetService<RelationalQueryModelVisitorFactory>();
 
         public virtual IRelationalTypeMapper TypeMapper => GetService<RelationalTypeMapper>();

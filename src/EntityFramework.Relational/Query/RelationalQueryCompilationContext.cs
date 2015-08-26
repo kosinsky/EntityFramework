@@ -1,7 +1,6 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
@@ -9,7 +8,6 @@ using Microsoft.Data.Entity.Query.Expressions;
 using Microsoft.Data.Entity.Query.ExpressionVisitors;
 using Microsoft.Data.Entity.Utilities;
 using Microsoft.Framework.Logging;
-using Microsoft.Framework.DependencyInjection;
 using Remotion.Linq.Clauses;
 
 namespace Microsoft.Data.Entity.Query
@@ -22,15 +20,13 @@ namespace Microsoft.Data.Entity.Query
         private IQueryMethodProvider _queryMethodProvider;
 
         public RelationalQueryCompilationContext(
-            [NotNull] IServiceProvider serviceProvider,
             [NotNull] ILoggerFactory loggerFactory,
             [NotNull] IEntityQueryModelVisitorFactory entityQueryModelVisitorFactory,
-            [NotNull] IRequiresMaterializationExpressionVisitorFactory requiresMaterializationExpressionVisitorFactory)
+            [NotNull] IRequiresMaterializationExpressionVisitor requiresMaterializationExpressionVisitor)
             : base(
-                Check.NotNull(serviceProvider, nameof(serviceProvider)),
                 Check.NotNull(loggerFactory, nameof(loggerFactory)),
                 Check.NotNull(entityQueryModelVisitorFactory, nameof(entityQueryModelVisitorFactory)),
-                Check.NotNull(requiresMaterializationExpressionVisitorFactory, nameof(requiresMaterializationExpressionVisitorFactory)))
+                Check.NotNull(requiresMaterializationExpressionVisitor, nameof(requiresMaterializationExpressionVisitor)))
         {
         }
 
@@ -40,11 +36,11 @@ namespace Microsoft.Data.Entity.Query
 
             if(isAsync)
             {
-                _queryMethodProvider = ServiceProvider.GetService<AsyncQueryMethodProvider>();
+                _queryMethodProvider = new AsyncQueryMethodProvider();
             }
             else
             {
-                _queryMethodProvider = ServiceProvider.GetService<QueryMethodProvider>();
+                _queryMethodProvider = new QueryMethodProvider();
             }
         }
 

@@ -13,7 +13,7 @@ using Remotion.Linq.Clauses.Expressions;
 
 namespace Microsoft.Data.Entity.Query.ExpressionVisitors
 {
-    public class RequiresMaterializationExpressionVisitor : ExpressionVisitorBase
+    public class RequiresMaterializationExpressionVisitor : ExpressionVisitorBase, IRequiresMaterializationExpressionVisitor
     {
         private readonly IModel _model;
 
@@ -30,18 +30,16 @@ namespace Microsoft.Data.Entity.Query.ExpressionVisitors
             _model = model;
         }
 
-        public virtual void Initialize([NotNull] EntityQueryModelVisitor queryModelVisitor)
-        {
-            Check.NotNull(queryModelVisitor, nameof(queryModelVisitor));
-
-            _queryModelVisitor = queryModelVisitor;
-        }
-
-        public virtual ISet<IQuerySource> FindQuerySourcesRequiringMaterialization([NotNull] QueryModel queryModel)
+        public virtual ISet<IQuerySource> FindQuerySourcesRequiringMaterialization(
+            [NotNull] EntityQueryModelVisitor queryModelVisitor,
+            [NotNull] QueryModel queryModel)
         {
             Check.NotNull(queryModel, nameof(queryModel));
+            Check.NotNull(queryModelVisitor, nameof(queryModelVisitor));
 
             _queryModel = queryModel;
+            _queryModelVisitor = queryModelVisitor;
+
             _parentSelector = queryModel.SelectClause.Selector;
 
             _queryModel.TransformExpressions(Visit);

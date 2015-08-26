@@ -16,7 +16,7 @@ using Remotion.Linq.Parsing;
 
 namespace Microsoft.Data.Entity.Query.ExpressionVisitors
 {
-    public class NavigationRewritingExpressionVisitor : RelinqExpressionVisitor
+    public class NavigationRewritingExpressionVisitor : RelinqExpressionVisitor, INavigationRewritingExpressionVisitor
     {
         private readonly List<NavigationJoin> _navigationJoins = new List<NavigationJoin>();
 

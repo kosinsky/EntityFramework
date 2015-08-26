@@ -3,11 +3,15 @@
 
 using System.Linq.Expressions;
 using JetBrains.Annotations;
+using Remotion.Linq.Clauses;
 
 namespace Microsoft.Data.Entity.Query.ExpressionVisitors
 {
-    public interface IOrderingExpressionVisitorFactory
+    public interface IProjectionExpressionVisitor
     {
-        ExpressionVisitor Create([NotNull] EntityQueryModelVisitor queryModelVisitor);
+        Expression VisitProjection(
+            [NotNull] EntityQueryModelVisitor queryModelVisitor,
+            [NotNull] IQuerySource querySource,
+            [NotNull] Expression expression);
     }
 }

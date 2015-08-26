@@ -4,14 +4,14 @@
 using System.Linq.Expressions;
 using JetBrains.Annotations;
 using Remotion.Linq.Clauses;
+using Remotion.Linq.Clauses.Expressions;
 
 namespace Microsoft.Data.Entity.Query.ExpressionVisitors
 {
-    public interface IMemberAccessBindingExpressionVisitorFactory
+    public interface IQuerySourceTracingExpressionVisitor
     {
-        ExpressionVisitor Create(
-            [NotNull] QuerySourceMapping querySourceMapping,
-            [NotNull] EntityQueryModelVisitor queryModelVisitor,
-            bool inProjection);
+        QuerySourceReferenceExpression FindResultQuerySourceReferenceExpression(
+            [NotNull] Expression expression,
+            [NotNull] IQuerySource targetQuerySource);
     }
 }

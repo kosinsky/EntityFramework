@@ -12,7 +12,6 @@ using Microsoft.Data.Entity.Query.ExpressionVisitors;
 using Microsoft.Data.Entity.Storage;
 using Microsoft.Data.Entity.Utilities;
 using Microsoft.Framework.Logging;
-using Microsoft.Framework.DependencyInjection;
 using Remotion.Linq;
 using Remotion.Linq.Clauses;
 
@@ -20,7 +19,7 @@ namespace Microsoft.Data.Entity.Query
 {
     public abstract class QueryCompilationContext
     {
-        private readonly IRequiresMaterializationExpressionVisitorFactory _requiresMaterializationExpressionVisitorFactory;
+        private readonly IRequiresMaterializationExpressionVisitor _requiresMaterializationExpressionVisitor;
         private readonly IEntityQueryModelVisitorFactory _entityQueryModelVisitorFactory;
 
         private ILinqOperatorProvider _linqOperatorProvider;
@@ -30,35 +29,30 @@ namespace Microsoft.Data.Entity.Query
         private ISet<IQuerySource> _querySourcesRequiringMaterialization;
 
         protected QueryCompilationContext(
-            [NotNull] IServiceProvider serviceProvider,
             [NotNull] ILoggerFactory loggerFactory,
             [NotNull] IEntityQueryModelVisitorFactory entityQueryModelVisitorFactory,
-            [NotNull] IRequiresMaterializationExpressionVisitorFactory requiresMaterializationExpressionVisitorFactory)
+            [NotNull] IRequiresMaterializationExpressionVisitor requiresMaterializationExpressionVisitor)
         {
-            Check.NotNull(serviceProvider, nameof(serviceProvider));
             Check.NotNull(loggerFactory, nameof(loggerFactory));
             Check.NotNull(entityQueryModelVisitorFactory, nameof(entityQueryModelVisitorFactory));
-            Check.NotNull(requiresMaterializationExpressionVisitorFactory, nameof(requiresMaterializationExpressionVisitorFactory));
+            Check.NotNull(requiresMaterializationExpressionVisitor, nameof(requiresMaterializationExpressionVisitor));
 
-            ServiceProvider = serviceProvider;
             Logger = loggerFactory.CreateLogger<Database>();
             _entityQueryModelVisitorFactory = entityQueryModelVisitorFactory;
-            _requiresMaterializationExpressionVisitorFactory = requiresMaterializationExpressionVisitorFactory;
+            _requiresMaterializationExpressionVisitor = requiresMaterializationExpressionVisitor;
         }
 
         public virtual void Initialize(bool isAsync = false)
         {
             if (isAsync)
-            {
-                _linqOperatorProvider = ServiceProvider.GetService<AsyncLinqOperatorProvider>();
+            {                
+                _linqOperatorProvider = new AsyncLinqOperatorProvider();
             }
             else
             {
-                _linqOperatorProvider = ServiceProvider.GetService<LinqOperatorProvider>();
+                _linqOperatorProvider = new LinqOperatorProvider();
             }
         }
-
-        protected IServiceProvider ServiceProvider { get; }
 
         public virtual ILogger Logger { get; }
 
@@ -129,12 +123,9 @@ namespace Microsoft.Data.Entity.Query
             Check.NotNull(queryModelVisitor, nameof(queryModelVisitor));
             Check.NotNull(queryModel, nameof(queryModel));
 
-            var requiresEntityMaterializationExpressionVisitor
-                = _requiresMaterializationExpressionVisitorFactory.Create(queryModelVisitor);
-
             _querySourcesRequiringMaterialization
-                = requiresEntityMaterializationExpressionVisitor
-                    .FindQuerySourcesRequiringMaterialization(queryModel);
+                = _requiresMaterializationExpressionVisitor
+                    .FindQuerySourcesRequiringMaterialization(queryModelVisitor, queryModel);
 
             foreach (var groupJoinClause in queryModel.BodyClauses.OfType<GroupJoinClause>())
             {

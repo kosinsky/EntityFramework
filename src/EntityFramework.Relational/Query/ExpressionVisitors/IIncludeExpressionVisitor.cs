@@ -9,13 +9,14 @@ using Remotion.Linq.Clauses;
 
 namespace Microsoft.Data.Entity.Query.ExpressionVisitors
 {
-    public interface IIncludeExpressionVisitorFactory
+    public interface IIncludeExpressionVisitor
     {
-        ExpressionVisitor Create(
+        Expression VisitInclude(
             [NotNull] IQuerySource querySource,
             [NotNull] IReadOnlyList<INavigation> navigationPath,
             [NotNull] RelationalQueryCompilationContext queryCompilationContext,
-            [NotNull] IReadOnlyList<int> readerIndexes,
+            [NotNull] IReadOnlyList<int> queryIndexes,
+            [NotNull] Expression expression,
             bool querySourceRequiresTracking);
     }
 }

@@ -20,7 +20,7 @@ using Remotion.Linq.Clauses.Expressions;
 
 namespace Microsoft.Data.Entity.Query.ExpressionVisitors
 {
-    public class RelationalEntityQueryableExpressionVisitor : EntityQueryableExpressionVisitor
+    public class RelationalEntityQueryableExpressionVisitor : EntityQueryableExpressionVisitor, IEntityQueryableExpressionVisitor
     {
         private readonly IModel _model;
         private readonly IEntityKeyFactorySource _entityKeyFactorySource;
@@ -32,19 +32,8 @@ namespace Microsoft.Data.Entity.Query.ExpressionVisitors
         private static readonly ParameterExpression _valueBufferParameter
             = Expression.Parameter(typeof(ValueBuffer));
 
+        private RelationalQueryModelVisitor _relationalQueryModelVisitor;
         private IQuerySource _querySource;
-
-        public virtual IQuerySource QuerySource
-        {
-            get { return _querySource; }
-            [param: NotNull]
-            set
-            {
-                Check.NotNull(value, nameof(value));
-
-                _querySource = value;
-            }
-        }
 
         public RelationalEntityQueryableExpressionVisitor(
             [NotNull] IModel model,
@@ -69,16 +58,19 @@ namespace Microsoft.Data.Entity.Query.ExpressionVisitors
             _relationalMetadataExtensionProvider = relationalMetadataExtensionProvider;
         }
 
-        public virtual new RelationalQueryModelVisitor QueryModelVisitor
+        public virtual Expression VisitEntityQueryable(
+            [NotNull] EntityQueryModelVisitor queryModelVisitor,
+            [NotNull] IQuerySource querySource,
+            [NotNull] Expression expression)
         {
-            get { return (RelationalQueryModelVisitor)base.QueryModelVisitor; }
-            [param: NotNull]
-            set
-            {
-                Check.NotNull(value, nameof(value));
+            Check.NotNull(queryModelVisitor, nameof(queryModelVisitor));
+            Check.NotNull(querySource, nameof(querySource));
+            Check.NotNull(expression, nameof(expression));
 
-                base.QueryModelVisitor = value;
-            }
+            _relationalQueryModelVisitor = (RelationalQueryModelVisitor)queryModelVisitor;
+            _querySource = querySource;
+
+            return VisitQueryExpression(queryModelVisitor, expression);
         }
 
         protected override Expression VisitSubQuery(SubQueryExpression subQueryExpression)
@@ -89,7 +81,7 @@ namespace Microsoft.Data.Entity.Query.ExpressionVisitors
 
             queryModelVisitor.VisitQueryModel(subQueryExpression.QueryModel);
 
-            QueryModelVisitor.RegisterSubQueryVisitor(_querySource, queryModelVisitor);
+            _relationalQueryModelVisitor.RegisterSubQueryVisitor(_querySource, queryModelVisitor);
 
             return queryModelVisitor.Expression;
         }
@@ -98,7 +90,7 @@ namespace Microsoft.Data.Entity.Query.ExpressionVisitors
         {
             Check.NotNull(memberExpression, nameof(memberExpression));
 
-            QueryModelVisitor
+            _relationalQueryModelVisitor
                 .BindMemberExpression(
                     memberExpression,
                     (property, querySource, selectExpression)
@@ -115,7 +107,7 @@ namespace Microsoft.Data.Entity.Query.ExpressionVisitors
         {
             Check.NotNull(methodCallExpression, nameof(methodCallExpression));
 
-            QueryModelVisitor
+            _relationalQueryModelVisitor
                 .BindMethodCallExpression(
                     methodCallExpression,
                     (property, querySource, selectExpression)
@@ -185,7 +177,7 @@ namespace Microsoft.Data.Entity.Query.ExpressionVisitors
                         throw new InvalidOperationException(Strings.StoredProcedureIncludeNotSupported);
                     }
 
-                    QueryModelVisitor.RequiresClientEval = true;
+                    _relationalQueryModelVisitor.RequiresClientEval = true;
 
                     composable = false;
                 }
@@ -197,7 +189,7 @@ namespace Microsoft.Data.Entity.Query.ExpressionVisitors
                 }
             }
 
-            QueryModelVisitor.AddQuery(_querySource, selectExpression);
+            _relationalQueryModelVisitor.AddQuery(_querySource, selectExpression);
 
             var queryMethodArguments
                 = new List<Expression>
@@ -211,7 +203,7 @@ namespace Microsoft.Data.Entity.Query.ExpressionVisitors
 
             if (QueryModelVisitor.QueryCompilationContext
                 .QuerySourceRequiresMaterialization(_querySource)
-                || QueryModelVisitor.RequiresClientEval)
+                || _relationalQueryModelVisitor.RequiresClientEval)
             {
                 var materializer
                     = _materializerFactory
@@ -261,7 +253,7 @@ namespace Microsoft.Data.Entity.Query.ExpressionVisitors
             }
 
             return Expression.Call(
-                QueryModelVisitor.QueryCompilationContext.QueryMethodProvider.ShapedQueryMethod
+                _relationalQueryModelVisitor.QueryCompilationContext.QueryMethodProvider.ShapedQueryMethod
                     .MakeGenericMethod(queryMethodInfo.ReturnType),
                 EntityQueryModelVisitor.QueryContextParameter,
                 Expression.Constant(

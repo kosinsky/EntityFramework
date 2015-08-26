@@ -27,7 +27,7 @@ namespace Microsoft.Data.Entity.Storage
         ICompiledQueryCacheKeyGenerator CompiledQueryCacheKeyGenerator { get; }
         IExpressionPrinter ExpressionPrinter { get; }
         IResultOperatorHandler ResultOperatorHandler { get; }
-        IEntityQueryableExpressionVisitorFactory EntityQueryableExpressionVisitorFactory { get; }
-        IProjectionExpressionVisitorFactory ProjectionExpressionVisitorFactory { get; }
+        IEntityQueryableExpressionVisitor EntityQueryableExpressionVisitor { get; }
+        IProjectionExpressionVisitor ProjectionExpressionVisitor { get; }
     }
 }

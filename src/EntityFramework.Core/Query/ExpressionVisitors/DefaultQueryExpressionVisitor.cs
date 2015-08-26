@@ -14,16 +14,18 @@ namespace Microsoft.Data.Entity.Query.ExpressionVisitors
     {
         private EntityQueryModelVisitor _entityQueryModelVisitor;
 
-        public virtual EntityQueryModelVisitor QueryModelVisitor
-        {
-            get { return _entityQueryModelVisitor; }
-            [param: NotNull]
-            set
-            {
-                Check.NotNull(value, nameof(value));
+        protected virtual EntityQueryModelVisitor QueryModelVisitor => _entityQueryModelVisitor;
 
-                _entityQueryModelVisitor = value;
-            }
+        protected virtual Expression VisitQueryExpression(
+            [NotNull] EntityQueryModelVisitor queryModelVisitor,
+            [NotNull] Expression expression)
+        {
+            Check.NotNull(queryModelVisitor, nameof(queryModelVisitor));
+            Check.NotNull(expression, nameof(expression));
+
+            _entityQueryModelVisitor = queryModelVisitor;
+
+            return Visit(expression);
         }
 
         protected override Expression VisitSubQuery(SubQueryExpression subQueryExpression)

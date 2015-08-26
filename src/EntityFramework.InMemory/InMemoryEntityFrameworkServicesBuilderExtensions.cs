@@ -45,7 +45,6 @@ namespace Microsoft.Framework.DependencyInjection
                 .AddScoped<IMaterializerFactory, MaterializerFactory>()
                 .AddScoped<InMemoryQueryContextFactory>()
                 .AddScoped<InMemoryQueryCompilationContextFactory>()
-                .AddScoped<InMemoryEntityQueryableExpressionVisitorFactory>()
                 .AddScoped<InMemoryQueryModelVisitorFactory>()
                 .AddTransient<InMemoryQueryCompilationContext>()
                 .AddTransient<InMemoryQueryModelVisitor>()

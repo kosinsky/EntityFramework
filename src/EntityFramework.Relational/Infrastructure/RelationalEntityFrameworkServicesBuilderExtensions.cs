@@ -76,8 +76,6 @@ namespace Microsoft.Data.Entity.Infrastructure
                 .AddScoped<ICommandBuilderFactory, CommandBuilderFactory>()
                 .AddScoped<RelationalQueryContextFactory>()
                 .AddScoped<RelationalExpressionPrinter>()
-                .AddScoped<AsyncQueryMethodProvider>()
-                .AddScoped<QueryMethodProvider>()
                 .AddScoped<RelationalResultOperatorHandler>()
                 .AddScoped<RelationalQueryCompilationContextFactory>()
                 .AddScoped<RelationalQueryModelVisitorFactory>()
@@ -87,21 +85,21 @@ namespace Microsoft.Data.Entity.Infrastructure
                 .AddTransient<RawSqlQueryGenerator>()
                 .AddTransient<CommandBuilder>()
                 // Expression Visitors
-                .AddTransient<CompositePredicateExpressionVisitor>()
-                .AddTransient<IncludeExpressionVisitor>()
-                .AddTransient<QueryFlatteningExpressionVisitor>()
+                .AddTransient<ICompositePredicateExpressionVisitor, CompositePredicateExpressionVisitor>()
+                .AddTransient<IIncludeExpressionVisitor, IncludeExpressionVisitor>()
+                .AddTransient<IQueryFlatteningExpressionVisitor, QueryFlatteningExpressionVisitor>()
                 .AddTransient<RelationalEntityQueryableExpressionVisitor>()
                 .AddTransient<RelationalProjectionExpressionVisitor>()
-                .AddTransient<ShapedQueryFindingExpressionVisitor>()
-                .AddTransient<SqlTranslatingExpressionVisitor>()
-                // Expression Visitor Factories
-                .AddScoped<ICompositePredicateExpressionVisitorFactory, CompositePredicateExpressionVisitorFactory>()
-                .AddScoped<IIncludeExpressionVisitorFactory, IncludeExpressionVisitorFactory>()
-                .AddScoped<IQueryFlatteningExpressionVisitorFactory, QueryFlatteningExpressionVisitorFactory>()
+
+
+
+
                 .AddScoped<IShapedQueryFindingExpressionVisitorFactory, ShapedQueryFindingExpressionVisitorFactory>()
                 .AddScoped<ISqlTranslatingExpressionVisitorFactory, SqlTranslatingExpressionVisitorFactory>()
-                .AddScoped<RelationalEntityQueryableExpressionVisitorFactory>()
-                .AddScoped<RelationalProjectionExpressionVisitorFactory>();
+
+                .AddTransient<RelationalEntityQueryableExpressionVisitor>()
+                .AddTransient<ShapedQueryFindingExpressionVisitor>()
+                .AddTransient<SqlTranslatingExpressionVisitor>();
         }
 
         private static IRelationalDatabaseProviderServices GetProviderServices(IServiceProvider serviceProvider)
