@@ -4,29 +4,35 @@
 using System;
 using JetBrains.Annotations;
 using Microsoft.Data.Entity.Query.Sql;
+using Microsoft.Data.Entity.Storage;
 using Microsoft.Data.Entity.Utilities;
-using Microsoft.Framework.DependencyInjection;
 
 namespace Microsoft.Data.Entity.Query
 {
     public class CommandBuilderFactory : ICommandBuilderFactory
     {
-        private readonly IServiceProvider _serviceProvider;
+        private readonly IRelationalValueBufferFactoryFactory _valueBufferFactoryFactory;
+        private readonly IRelationalTypeMapper _typeMapper;
 
-        public CommandBuilderFactory([NotNull] IServiceProvider serviceProvider)
+        public CommandBuilderFactory(
+            [NotNull] IRelationalValueBufferFactoryFactory valueBufferFactoryFactory,
+            [NotNull] IRelationalTypeMapper typeMapper)
         {
-            Check.NotNull(serviceProvider, nameof(serviceProvider));
+            Check.NotNull(valueBufferFactoryFactory, nameof(valueBufferFactoryFactory));
+            Check.NotNull(typeMapper, nameof(typeMapper));
 
-            _serviceProvider = serviceProvider;
+            _valueBufferFactoryFactory = valueBufferFactoryFactory;
+            _typeMapper = typeMapper;
         }
 
         public virtual CommandBuilder Create([NotNull] Func<ISqlQueryGenerator> sqlGeneratorFunc)
         {
-            var builder = _serviceProvider.GetService<CommandBuilder>();
+            Check.NotNull(sqlGeneratorFunc, nameof(sqlGeneratorFunc));
 
-            builder.Initialize(sqlGeneratorFunc);
-
-            return builder;
+            return new CommandBuilder(
+                _valueBufferFactoryFactory,
+                _typeMapper,
+                sqlGeneratorFunc);
         }
     }
 }

@@ -58,7 +58,6 @@ namespace Microsoft.Framework.DependencyInjection
             return serviceCollection
                 .AddScoped<SqlServerQueryCompilationContextFactory>()
                 .AddScoped<SqlServerQuerySqlGeneratorFactory>()
-                .AddTransient<SqlServerQueryCompilationContext>()
                 .AddTransient<SqlServerQuerySqlGenerator>();
         }
     }

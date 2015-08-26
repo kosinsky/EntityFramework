@@ -17,8 +17,7 @@ namespace Microsoft.Data.Entity.Query.ExpressionVisitors
     {
         private readonly IModel _model;
 
-        private readonly Dictionary<IQuerySource, int> _querySources = new Dictionary<IQuerySource, int>();
-
+        private Dictionary<IQuerySource, int> _querySources;
         private EntityQueryModelVisitor _queryModelVisitor;
         private QueryModel _queryModel;
         private Expression _parentSelector;
@@ -37,9 +36,9 @@ namespace Microsoft.Data.Entity.Query.ExpressionVisitors
             Check.NotNull(queryModel, nameof(queryModel));
             Check.NotNull(queryModelVisitor, nameof(queryModelVisitor));
 
-            _queryModel = queryModel;
+            _querySources = new Dictionary<IQuerySource, int>();
             _queryModelVisitor = queryModelVisitor;
-
+            _queryModel = queryModel;
             _parentSelector = queryModel.SelectClause.Selector;
 
             _queryModel.TransformExpressions(Visit);

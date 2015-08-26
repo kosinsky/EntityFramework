@@ -16,25 +16,21 @@ namespace Microsoft.Data.Entity.Query
     {
         private readonly IRelationalValueBufferFactoryFactory _valueBufferFactoryFactory;
         private readonly IRelationalTypeMapper _typeMapper;
+        private readonly Func<ISqlQueryGenerator> _sqlGeneratorFunc;
 
-        private Func<ISqlQueryGenerator> _sqlGeneratorFunc;
         private IRelationalValueBufferFactory _valueBufferFactory;
 
         public CommandBuilder(
             [NotNull] IRelationalValueBufferFactoryFactory valueBufferFactoryFactory,
-            [NotNull] IRelationalTypeMapper typeMapper)
+            [NotNull] IRelationalTypeMapper typeMapper,
+            [NotNull] Func<ISqlQueryGenerator> sqlGeneratorFunc)
         {
             Check.NotNull(valueBufferFactoryFactory, nameof(valueBufferFactoryFactory));
             Check.NotNull(typeMapper, nameof(typeMapper));
+            Check.NotNull(sqlGeneratorFunc, nameof(sqlGeneratorFunc));
 
             _valueBufferFactoryFactory = valueBufferFactoryFactory;
             _typeMapper = typeMapper;
-        }
-
-        public virtual void Initialize([NotNull] Func<ISqlQueryGenerator> sqlGeneratorFunc)
-        {
-            Check.NotNull(sqlGeneratorFunc, nameof(sqlGeneratorFunc));
-
             _sqlGeneratorFunc = sqlGeneratorFunc;
         }
 

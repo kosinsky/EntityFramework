@@ -129,6 +129,7 @@ namespace Microsoft.Framework.DependencyInjection
                 .AddScoped<IQueryAnnotationExtractor, QueryAnnotationExtractor>()
                 .AddScoped<IQueryOptimizer, QueryOptimizer>()
                 .AddScoped<IEntityTrackingInfoFactory, EntityTrackingInfoFactory>()
+                .AddScoped<IRequiresMaterializationExpressionVisitor, RequiresMaterializationExpressionVisitor>()
                 .AddScoped<ISubQueryMemberPushDownExpressionVisitor, SubQueryMemberPushDownExpressionVisitor>()
                 .AddScoped<ITaskBlockingExpressionVisitor, TaskBlockingExpressionVisitor>()
                 .AddScoped<CompiledQueryCacheKeyGenerator>()
@@ -145,7 +146,6 @@ namespace Microsoft.Framework.DependencyInjection
                 .AddTransient<INavigationRewritingExpressionVisitor, NavigationRewritingExpressionVisitor>()
                 .AddTransient<IOrderingExpressionVisitor, OrderingExpressionVisitor>()
                 .AddTransient<IQuerySourceTracingExpressionVisitor, QuerySourceTracingExpressionVisitor>()
-                .AddTransient<IRequiresMaterializationExpressionVisitor, RequiresMaterializationExpressionVisitor>()
                 .AddTransient<ProjectionExpressionVisitor>()
                 .AddTransient(p => GetProviderServices(p).EntityQueryableExpressionVisitor)
                 .AddTransient(p => GetProviderServices(p).ProjectionExpressionVisitor);

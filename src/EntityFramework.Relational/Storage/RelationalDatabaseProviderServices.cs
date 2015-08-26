@@ -25,10 +25,11 @@ namespace Microsoft.Data.Entity.Storage
 
         public override IDatabase Database => GetService<RelationalDatabase>();
         public override IQueryContextFactory QueryContextFactory => GetService<RelationalQueryContextFactory>();
+        public override IQueryCompilationContextFactory QueryCompilationContextFactory => GetService<RelationalQueryCompilationContextFactory>();
         public override IResultOperatorHandler ResultOperatorHandler => GetService<RelationalResultOperatorHandler>();
         public override IValueGeneratorSelector ValueGeneratorSelector => GetService<RelationalValueGeneratorSelector>();
         public override IModelValidator ModelValidator => GetService<RelationalModelValidator>();
-        public override IQueryCompilationContextFactory QueryCompilationContextFactory => GetService<RelationalQueryCompilationContextFactory>();
+
         public override IExpressionPrinter ExpressionPrinter => GetService<RelationalExpressionPrinter>();
         public override IEntityQueryableExpressionVisitor EntityQueryableExpressionVisitor => GetService<RelationalEntityQueryableExpressionVisitor>();
         public override IProjectionExpressionVisitor ProjectionExpressionVisitor => GetService<RelationalProjectionExpressionVisitor>();

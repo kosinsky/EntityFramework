@@ -22,8 +22,6 @@ namespace Microsoft.Data.Entity.Query
         private readonly IRequiresMaterializationExpressionVisitor _requiresMaterializationExpressionVisitor;
         private readonly IEntityQueryModelVisitorFactory _entityQueryModelVisitorFactory;
 
-        private ILinqOperatorProvider _linqOperatorProvider;
-
         private IReadOnlyCollection<QueryAnnotationBase> _queryAnnotations;
         private IDictionary<IQuerySource, List<IReadOnlyList<INavigation>>> _trackableIncludes;
         private ISet<IQuerySource> _querySourcesRequiringMaterialization;
@@ -31,32 +29,23 @@ namespace Microsoft.Data.Entity.Query
         protected QueryCompilationContext(
             [NotNull] ILoggerFactory loggerFactory,
             [NotNull] IEntityQueryModelVisitorFactory entityQueryModelVisitorFactory,
-            [NotNull] IRequiresMaterializationExpressionVisitor requiresMaterializationExpressionVisitor)
+            [NotNull] IRequiresMaterializationExpressionVisitor requiresMaterializationExpressionVisitor,
+            [NotNull] ILinqOperatorProvider linqOperatorProvider)
         {
             Check.NotNull(loggerFactory, nameof(loggerFactory));
             Check.NotNull(entityQueryModelVisitorFactory, nameof(entityQueryModelVisitorFactory));
             Check.NotNull(requiresMaterializationExpressionVisitor, nameof(requiresMaterializationExpressionVisitor));
+            Check.NotNull(linqOperatorProvider, nameof(linqOperatorProvider));
 
             Logger = loggerFactory.CreateLogger<Database>();
             _entityQueryModelVisitorFactory = entityQueryModelVisitorFactory;
             _requiresMaterializationExpressionVisitor = requiresMaterializationExpressionVisitor;
-        }
-
-        public virtual void Initialize(bool isAsync = false)
-        {
-            if (isAsync)
-            {                
-                _linqOperatorProvider = new AsyncLinqOperatorProvider();
-            }
-            else
-            {
-                _linqOperatorProvider = new LinqOperatorProvider();
-            }
+            LinqOperatorProvider = linqOperatorProvider;
         }
 
         public virtual ILogger Logger { get; }
 
-        public virtual ILinqOperatorProvider LinqOperatorProvider => _linqOperatorProvider;
+        public virtual ILinqOperatorProvider LinqOperatorProvider { get; }
 
         public virtual QuerySourceMapping QuerySourceMapping { get; } = new QuerySourceMapping();
 

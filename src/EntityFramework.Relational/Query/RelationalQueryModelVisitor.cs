@@ -30,10 +30,10 @@ namespace Microsoft.Data.Entity.Query
 
         private readonly IRelationalMetadataExtensionProvider _relationalMetadataExtensionProvider;
         private readonly IIncludeExpressionVisitor _includeExpressionVisitor;
-        private readonly ISqlTranslatingExpressionVisitorFactory _sqlTranslatingExpressionVisitorFactory;
+        private readonly ISqlTranslatingExpressionVisitor _sqlTranslatingExpressionVisitor;
         private readonly ICompositePredicateExpressionVisitor _compositePredicateExpressionVisitor;
         private readonly IQueryFlatteningExpressionVisitor _queryFlatteningExpressionVisitor;
-        private readonly IShapedQueryFindingExpressionVisitorFactory _shapedQueryFindingExpressionVisitorFactory;
+        private readonly IShapedQueryFindingExpressionVisitor _shapedQueryFindingExpressionVisitor;
 
         private RelationalQueryModelVisitor _parentQueryModelVisitor;
 
@@ -64,10 +64,10 @@ namespace Microsoft.Data.Entity.Query
             [NotNull] IExpressionPrinter expressionPrinter,
             [NotNull] IRelationalMetadataExtensionProvider relationalMetadataExtensionProvider,
             [NotNull] IIncludeExpressionVisitor includeExpressionVisitor,
-            [NotNull] ISqlTranslatingExpressionVisitorFactory sqlTranslatingExpressionVisitorFactory,
+            [NotNull] ISqlTranslatingExpressionVisitor sqlTranslatingExpressionVisitor,
             [NotNull] ICompositePredicateExpressionVisitor compositePredicateExpressionVisitor,
             [NotNull] IQueryFlatteningExpressionVisitor queryFlatteningExpressionVisitor,
-            [NotNull] IShapedQueryFindingExpressionVisitorFactory shapedQueryFindingExpressionVisitorFactory)
+            [NotNull] IShapedQueryFindingExpressionVisitor shapedQueryFindingExpressionVisitor)
             : base(
                   Check.NotNull(model, nameof(model)),
                   Check.NotNull(queryOptimizer, nameof(queryOptimizer)),
@@ -87,17 +87,17 @@ namespace Microsoft.Data.Entity.Query
         {
             Check.NotNull(relationalMetadataExtensionProvider, nameof(relationalMetadataExtensionProvider));
             Check.NotNull(includeExpressionVisitor, nameof(includeExpressionVisitor));
-            Check.NotNull(sqlTranslatingExpressionVisitorFactory, nameof(sqlTranslatingExpressionVisitorFactory));
+            Check.NotNull(sqlTranslatingExpressionVisitor, nameof(sqlTranslatingExpressionVisitor));
             Check.NotNull(compositePredicateExpressionVisitor, nameof(compositePredicateExpressionVisitor));
             Check.NotNull(queryFlatteningExpressionVisitor, nameof(queryFlatteningExpressionVisitor));
-            Check.NotNull(shapedQueryFindingExpressionVisitorFactory, nameof(shapedQueryFindingExpressionVisitorFactory));
+            Check.NotNull(shapedQueryFindingExpressionVisitor, nameof(shapedQueryFindingExpressionVisitor));
 
             _relationalMetadataExtensionProvider = relationalMetadataExtensionProvider;
             _includeExpressionVisitor = includeExpressionVisitor;
-            _sqlTranslatingExpressionVisitorFactory = sqlTranslatingExpressionVisitorFactory;
+            _sqlTranslatingExpressionVisitor = sqlTranslatingExpressionVisitor;
             _compositePredicateExpressionVisitor = compositePredicateExpressionVisitor;
             _queryFlatteningExpressionVisitor = queryFlatteningExpressionVisitor;
-            _shapedQueryFindingExpressionVisitorFactory = shapedQueryFindingExpressionVisitorFactory;
+            _shapedQueryFindingExpressionVisitor = shapedQueryFindingExpressionVisitor;
         }
 
         public virtual bool RequiresClientEval { get; set; }
@@ -429,12 +429,10 @@ namespace Microsoft.Data.Entity.Query
 
                 if (selectExpression != null)
                 {
-                    var sqlTranslatingExpressionVisitor
-                        = _sqlTranslatingExpressionVisitorFactory.Create(this);
-
                     var predicate
-                        = sqlTranslatingExpressionVisitor
-                            .Visit(
+                        = _sqlTranslatingExpressionVisitor
+                            .TranslateSql(
+                                this,
                                 Expression.Equal(
                                     joinClause.OuterKeySelector,
                                     joinClause.InnerKeySelector));
@@ -546,9 +544,10 @@ namespace Microsoft.Data.Entity.Query
                 AddQuery(querySource, subSelectExpression);
 
                 var shapedQueryMethodExpression
-                    = _shapedQueryFindingExpressionVisitorFactory
-                        .Create(QueryCompilationContext)
-                        .Find(subQueryModelVisitor.Expression);
+                    = _shapedQueryFindingExpressionVisitor
+                        .FindShapedQuery(
+                            QueryCompilationContext,
+                            subQueryModelVisitor.Expression);
 
                 var shaperLambda = (LambdaExpression)shapedQueryMethodExpression.Arguments[2];
                 var shaperMethodCall = (MethodCallExpression)shaperLambda.Body;
@@ -621,11 +620,14 @@ namespace Microsoft.Data.Entity.Query
 
             if (!requiresClientFilter)
             {
-                var sqlTranslatingExpressionVisitor
-                    = _sqlTranslatingExpressionVisitorFactory
-                        .Create(this, selectExpression, whereClause.Predicate, _bindParentQueries);
-
-                var sqlPredicateExpression = sqlTranslatingExpressionVisitor.Visit(whereClause.Predicate);
+                var sqlPredicateExpression
+                    = _sqlTranslatingExpressionVisitor
+                        .TranslateSql(
+                            this,
+                            whereClause.Predicate,
+                             selectExpression,
+                             whereClause.Predicate,
+                             _bindParentQueries);
 
                 if (sqlPredicateExpression != null)
                 {
@@ -639,11 +641,11 @@ namespace Microsoft.Data.Entity.Query
                     requiresClientFilter = true;
                 }
 
-                if (sqlTranslatingExpressionVisitor.ClientEvalPredicate != null
+                if (_sqlTranslatingExpressionVisitor.ClientEvalPredicate != null
                     && selectExpression.Predicate != null)
                 {
                     requiresClientFilter = true;
-                    whereClause = new WhereClause(sqlTranslatingExpressionVisitor.ClientEvalPredicate);
+                    whereClause = new WhereClause(_sqlTranslatingExpressionVisitor.ClientEvalPredicate);
                 }
             }
 
@@ -665,17 +667,17 @@ namespace Microsoft.Data.Entity.Query
 
             if (!requiresClientOrderBy)
             {
-                var sqlTranslatingExpressionVisitor
-                    = _sqlTranslatingExpressionVisitorFactory
-                        .Create(this, selectExpression, bindParentQueries: _bindParentQueries);
-
                 var orderings = new List<Ordering>();
 
                 foreach (var ordering in orderByClause.Orderings)
                 {
                     var sqlOrderingExpression
-                        = sqlTranslatingExpressionVisitor
-                            .Visit(ordering.Expression);
+                        = _sqlTranslatingExpressionVisitor
+                            .TranslateSql(
+                                this,
+                                ordering.Expression,
+                                selectExpression,
+                                bindParentQueries: _bindParentQueries);
 
                     if (sqlOrderingExpression == null)
                     {

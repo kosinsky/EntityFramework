@@ -140,9 +140,7 @@ namespace Microsoft.Data.Entity.SqlServer.FunctionalTests
 
             var commandBuilder = new CommandBuilder(
                 new UntypedValueBufferFactoryFactory(),
-                new SqlServerTypeMapper());
-
-            commandBuilder.Initialize(
+                new SqlServerTypeMapper(),
                 () => new DefaultQuerySqlGenerator(new ParameterNameGeneratorFactory())
                 {
                     SelectExpression = selectExpression

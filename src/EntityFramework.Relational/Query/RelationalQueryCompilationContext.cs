@@ -17,34 +17,24 @@ namespace Microsoft.Data.Entity.Query
         private readonly List<RelationalQueryModelVisitor> _relationalQueryModelVisitors
             = new List<RelationalQueryModelVisitor>();
 
-        private IQueryMethodProvider _queryMethodProvider;
-
         public RelationalQueryCompilationContext(
             [NotNull] ILoggerFactory loggerFactory,
             [NotNull] IEntityQueryModelVisitorFactory entityQueryModelVisitorFactory,
-            [NotNull] IRequiresMaterializationExpressionVisitor requiresMaterializationExpressionVisitor)
+            [NotNull] IRequiresMaterializationExpressionVisitor requiresMaterializationExpressionVisitor,
+            [NotNull] ILinqOperatorProvider linqOperatorProvider,
+            [NotNull] IQueryMethodProvider queryMethodProvider)
             : base(
                 Check.NotNull(loggerFactory, nameof(loggerFactory)),
                 Check.NotNull(entityQueryModelVisitorFactory, nameof(entityQueryModelVisitorFactory)),
-                Check.NotNull(requiresMaterializationExpressionVisitor, nameof(requiresMaterializationExpressionVisitor)))
+                Check.NotNull(requiresMaterializationExpressionVisitor, nameof(requiresMaterializationExpressionVisitor)),
+                Check.NotNull(linqOperatorProvider, nameof(linqOperatorProvider)))
         {
+            Check.NotNull(queryMethodProvider, nameof(queryMethodProvider));
+
+            QueryMethodProvider = queryMethodProvider;
         }
 
-        public override void Initialize(bool isAsync = false)
-        {
-            base.Initialize(isAsync);
-
-            if(isAsync)
-            {
-                _queryMethodProvider = new AsyncQueryMethodProvider();
-            }
-            else
-            {
-                _queryMethodProvider = new QueryMethodProvider();
-            }
-        }
-
-        public virtual IQueryMethodProvider QueryMethodProvider => _queryMethodProvider;
+        public virtual IQueryMethodProvider QueryMethodProvider { get; }
 
         public override EntityQueryModelVisitor CreateQueryModelVisitor()
         {
@@ -74,9 +64,9 @@ namespace Microsoft.Data.Entity.Query
 
             return
                 (from v in _relationalQueryModelVisitors
-                    let selectExpression = v.TryGetQuery(querySource)
-                    where selectExpression != null
-                    select selectExpression)
+                 let selectExpression = v.TryGetQuery(querySource)
+                 where selectExpression != null
+                 select selectExpression)
                        .First();
         }
     }

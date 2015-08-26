@@ -13,11 +13,13 @@ namespace Microsoft.Data.Entity.Query
         public InMemoryQueryCompilationContext(
             [NotNull] ILoggerFactory loggerFactory,
             [NotNull] IEntityQueryModelVisitorFactory entityQueryModelVisitorFactory,
-            [NotNull] IRequiresMaterializationExpressionVisitor requiresMaterializationExpressionVisitor)
+            [NotNull] IRequiresMaterializationExpressionVisitor requiresMaterializationExpressionVisitor,
+            [NotNull] ILinqOperatorProvider linqOpeartorProvider)
             : base(
                 Check.NotNull(loggerFactory, nameof(loggerFactory)),
                 Check.NotNull(entityQueryModelVisitorFactory, nameof(entityQueryModelVisitorFactory)),
-                Check.NotNull(requiresMaterializationExpressionVisitor, nameof(requiresMaterializationExpressionVisitor)))
+                Check.NotNull(requiresMaterializationExpressionVisitor, nameof(requiresMaterializationExpressionVisitor)),
+                Check.NotNull(linqOpeartorProvider, nameof(linqOpeartorProvider)))
         {
         }
 

@@ -13,11 +13,15 @@ namespace Microsoft.Data.Entity.Query
         public SqlServerQueryCompilationContext(
             [NotNull] ILoggerFactory loggerFactory,
             [NotNull] IEntityQueryModelVisitorFactory entityQueryModelVisitorFactory,
-            [NotNull] IRequiresMaterializationExpressionVisitor requiresMaterializationExpressionVisitor)
+            [NotNull] IRequiresMaterializationExpressionVisitor requiresMaterializationExpressionVisitor,
+            [NotNull] ILinqOperatorProvider linqOpeartorProvider,
+            [NotNull] IQueryMethodProvider queryMethodProvider)
             : base(
                 Check.NotNull(loggerFactory, nameof(loggerFactory)),
                 Check.NotNull(entityQueryModelVisitorFactory, nameof(entityQueryModelVisitorFactory)),
-                Check.NotNull(requiresMaterializationExpressionVisitor, nameof(requiresMaterializationExpressionVisitor)))
+                Check.NotNull(requiresMaterializationExpressionVisitor, nameof(requiresMaterializationExpressionVisitor)),
+                Check.NotNull(linqOpeartorProvider, nameof(linqOpeartorProvider)),
+                Check.NotNull(queryMethodProvider, nameof(queryMethodProvider)))
         {
         }
 

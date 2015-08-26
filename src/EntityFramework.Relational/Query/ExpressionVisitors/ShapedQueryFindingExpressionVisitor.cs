@@ -8,23 +8,20 @@ using Microsoft.Data.Entity.Utilities;
 
 namespace Microsoft.Data.Entity.Query.ExpressionVisitors
 {
-    public class ShapedQueryFindingExpressionVisitor : ExpressionVisitorBase
+    public class ShapedQueryFindingExpressionVisitor : ExpressionVisitorBase, IShapedQueryFindingExpressionVisitor
     {
         private RelationalQueryCompilationContext _relationalQueryCompilationContext;
-
         private MethodCallExpression _shapedQueryMethodCall;
 
-        public virtual void Initialize(
-            [NotNull] RelationalQueryCompilationContext relationalQueryCompilationContext)
+        public virtual MethodCallExpression FindShapedQuery(
+            [NotNull] RelationalQueryCompilationContext relationalQueryCompilationContext,
+            [NotNull] Expression expression)
         {
             Check.NotNull(relationalQueryCompilationContext, nameof(relationalQueryCompilationContext));
+            Check.NotNull(expression, nameof(expression));
 
             _relationalQueryCompilationContext = relationalQueryCompilationContext;
-        }
-
-        public virtual MethodCallExpression Find([NotNull] Expression expression)
-        {
-            Check.NotNull(expression, nameof(expression));
+            _shapedQueryMethodCall = null;
 
             Visit(expression);
 

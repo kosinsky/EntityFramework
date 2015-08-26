@@ -1,25 +1,46 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using JetBrains.Annotations;
+using Microsoft.Data.Entity.Query.ExpressionVisitors;
 using Microsoft.Data.Entity.Utilities;
-using Microsoft.Framework.DependencyInjection;
+using Microsoft.Framework.Logging;
 
 namespace Microsoft.Data.Entity.Query
 {
     public class SqlServerQueryCompilationContextFactory : IQueryCompilationContextFactory
     {
-        private readonly IServiceProvider _serviceProvider;
+        private readonly ILoggerFactory _loggerFactory;
+        private readonly IEntityQueryModelVisitorFactory _entityQueryModelVisitorFactory;
+        private readonly IRequiresMaterializationExpressionVisitor _requiresMaterializationExpressionVisitor;
 
-        public SqlServerQueryCompilationContextFactory([NotNull] IServiceProvider serviceProvider)
+        public SqlServerQueryCompilationContextFactory(
+            [NotNull] ILoggerFactory loggerFactory,
+            [NotNull] IEntityQueryModelVisitorFactory entityQueryModelVisitorFactory,
+            [NotNull] IRequiresMaterializationExpressionVisitor requiresMaterializationExpressionVisitor)
         {
-            Check.NotNull(serviceProvider, nameof(serviceProvider));
+            Check.NotNull(loggerFactory, nameof(loggerFactory));
+            Check.NotNull(entityQueryModelVisitorFactory, nameof(entityQueryModelVisitorFactory));
+            Check.NotNull(requiresMaterializationExpressionVisitor, nameof(requiresMaterializationExpressionVisitor));
 
-            _serviceProvider = serviceProvider;
+            _loggerFactory = loggerFactory;
+            _entityQueryModelVisitorFactory = entityQueryModelVisitorFactory;
+            _requiresMaterializationExpressionVisitor = requiresMaterializationExpressionVisitor;
         }
 
-        public virtual QueryCompilationContext Create()
-            => _serviceProvider.GetService<SqlServerQueryCompilationContext>();
+        public virtual QueryCompilationContext Create(bool async)
+            => async
+                ? new SqlServerQueryCompilationContext(
+                    _loggerFactory,
+                    _entityQueryModelVisitorFactory,
+                    _requiresMaterializationExpressionVisitor,
+                    new AsyncLinqOperatorProvider(),
+                    new AsyncQueryMethodProvider())
+                : new SqlServerQueryCompilationContext(
+                    _loggerFactory,
+                    _entityQueryModelVisitorFactory,
+                    _requiresMaterializationExpressionVisitor,
+                    new LinqOperatorProvider(),
+                    new QueryMethodProvider());
     }
 }

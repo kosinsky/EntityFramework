@@ -28,7 +28,7 @@ namespace Microsoft.Data.Entity.Query
                 IResultOperatorHandler resultOperatorHandler,
                 IModel model,
                 IRelationalMetadataExtensionProvider relationalMetadataExtensionProvider,
-                ISqlTranslatingExpressionVisitorFactory sqlTranslatingExpressionVisitorFactory,
+                ISqlTranslatingExpressionVisitor sqlTranslatingExpressionVisitor,
                 RelationalQueryModelVisitor queryModelVisitor,
                 ResultOperatorBase resultOperator,
                 QueryModel queryModel,
@@ -37,7 +37,7 @@ namespace Microsoft.Data.Entity.Query
                 _resultOperatorHandler = resultOperatorHandler;
                 Model = model;
                 RelationalMetadataExtensionProvider = relationalMetadataExtensionProvider;
-                SqlTranslatingExpressionVisitorFactory = sqlTranslatingExpressionVisitorFactory;
+                SqlTranslatingExpressionVisitor = sqlTranslatingExpressionVisitor;
                 QueryModelVisitor = queryModelVisitor;
                 ResultOperator = resultOperator;
                 QueryModel = queryModel;
@@ -48,7 +48,7 @@ namespace Microsoft.Data.Entity.Query
 
             public IRelationalMetadataExtensionProvider RelationalMetadataExtensionProvider { get; }
 
-            public ISqlTranslatingExpressionVisitorFactory SqlTranslatingExpressionVisitorFactory { get; }
+            public ISqlTranslatingExpressionVisitor SqlTranslatingExpressionVisitor { get; }
 
             public ResultOperatorBase ResultOperator { get; }
 
@@ -96,23 +96,23 @@ namespace Microsoft.Data.Entity.Query
 
         private readonly IModel _model;
         private readonly IRelationalMetadataExtensionProvider _relationalMetadataExtensionProvider;
-        private readonly ISqlTranslatingExpressionVisitorFactory _sqlTranslatingExpressionVisitorFactory;
+        private readonly ISqlTranslatingExpressionVisitor _sqlTranslatingExpressionVisitor;
         private readonly ResultOperatorHandler _resultOperatorHandler;
 
         public RelationalResultOperatorHandler(
             [NotNull] IModel model,
             [NotNull] IRelationalMetadataExtensionProvider relationalMetadataExtensionProvider,
-            [NotNull] ISqlTranslatingExpressionVisitorFactory sqlTranslatingExpressionVisitorFactory,
+            [NotNull] ISqlTranslatingExpressionVisitor sqlTranslatingExpressionVisitor,
             [NotNull] ResultOperatorHandler resultOperatorHandler)
         {
             Check.NotNull(model, nameof(model));
             Check.NotNull(relationalMetadataExtensionProvider, nameof(relationalMetadataExtensionProvider));
-            Check.NotNull(sqlTranslatingExpressionVisitorFactory, nameof(sqlTranslatingExpressionVisitorFactory));
+            Check.NotNull(sqlTranslatingExpressionVisitor, nameof(sqlTranslatingExpressionVisitor));
             Check.NotNull(resultOperatorHandler, nameof(resultOperatorHandler));
 
             _model = model;
             _relationalMetadataExtensionProvider = relationalMetadataExtensionProvider;
-            _sqlTranslatingExpressionVisitorFactory = sqlTranslatingExpressionVisitorFactory;
+            _sqlTranslatingExpressionVisitor = sqlTranslatingExpressionVisitor;
             _resultOperatorHandler = resultOperatorHandler;
         }
 
@@ -137,7 +137,7 @@ namespace Microsoft.Data.Entity.Query
                     _resultOperatorHandler,
                     _model,
                     _relationalMetadataExtensionProvider,
-                    _sqlTranslatingExpressionVisitorFactory,
+                    _sqlTranslatingExpressionVisitor,
                     relationalQueryModelVisitor,
                     resultOperator,
                     queryModel,
@@ -158,15 +158,12 @@ namespace Microsoft.Data.Entity.Query
 
         private static Expression HandleAll(HandlerContext handlerContext)
         {
-            var filteringVisitor
-                = handlerContext.SqlTranslatingExpressionVisitorFactory
-                    .Create(
-                        handlerContext.QueryModelVisitor,
-                        handlerContext.SelectExpression);
-
             var predicate
-                = filteringVisitor.Visit(
-                    ((AllResultOperator)handlerContext.ResultOperator).Predicate);
+                = handlerContext.SqlTranslatingExpressionVisitor
+                    .TranslateSql(
+                        handlerContext.QueryModelVisitor,
+                        ((AllResultOperator)handlerContext.ResultOperator).Predicate,
+                        handlerContext.SelectExpression);
 
             if (predicate != null)
             {

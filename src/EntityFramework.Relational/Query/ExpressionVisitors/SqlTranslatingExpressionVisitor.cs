@@ -18,7 +18,7 @@ using Remotion.Linq.Parsing;
 
 namespace Microsoft.Data.Entity.Query.ExpressionVisitors
 {
-    public class SqlTranslatingExpressionVisitor : ThrowingExpressionVisitor
+    public class SqlTranslatingExpressionVisitor : ThrowingExpressionVisitor, ISqlTranslatingExpressionVisitor
     {
         private readonly IRelationalMetadataExtensionProvider _relationalMetadataExtensionProvider;
         private readonly IMethodCallTranslator _methodCallTranslator;
@@ -45,20 +45,25 @@ namespace Microsoft.Data.Entity.Query.ExpressionVisitors
             _memberTranslator = memberTranslator;
         }
 
-        public virtual void Initialize(
+        public virtual Expression TranslateSql(
             [NotNull] RelationalQueryModelVisitor queryModelVisitor,
+            [NotNull] Expression expression,
             [CanBeNull] SelectExpression targetSelectExpression = null,
             [CanBeNull] Expression topLevelPredicate = null,
             bool bindParentQueries = false,
             bool inProjection = false)
         {
             Check.NotNull(queryModelVisitor, nameof(queryModelVisitor));
+            Check.NotNull(expression, nameof(expression));
 
             _queryModelVisitor = queryModelVisitor;
             _targetSelectExpression = targetSelectExpression;
             _topLevelPredicate = topLevelPredicate;
             _bindParentQueries = bindParentQueries;
             _inProjection = inProjection;
+            ClientEvalPredicate = null;
+
+            return Visit(expression);
         }
 
         public virtual Expression ClientEvalPredicate { get; private set; }

@@ -84,10 +84,8 @@
     <Compile Include="Query\ExpressionVisitors\IIncludeExpressionVisitor.cs" />
     <Compile Include="Query\ExpressionVisitors\IMaterializerFactory.cs" />
     <Compile Include="Query\ExpressionVisitors\IQueryFlatteningExpressionVisitor.cs" />
-    <Compile Include="Query\ExpressionVisitors\IShapedQueryFindingExpressionVisitorFactory.cs" />
-    <Compile Include="Query\ExpressionVisitors\ISqlTranslatingExpressionVisitorFactory.cs" />
-    <Compile Include="Query\ExpressionVisitors\ShapedQueryFindingExpressionVisitorFactory.cs" />
-    <Compile Include="Query\ExpressionVisitors\SqlTranslatingExpressionVisitorFactory.cs" />
+    <Compile Include="Query\ExpressionVisitors\IShapedQueryFindingExpressionVisitor.cs" />
+    <Compile Include="Query\ExpressionVisitors\ISqlTranslatingExpressionVisitor.cs" />
     <Compile Include="Query\ICommandBuilderFactory.cs" />
     <Compile Include="Query\Internal\RelationalExpressionPrinter.cs" />
     <Compile Include="Query\RelationalQueryModelVisitorFactory.cs" />

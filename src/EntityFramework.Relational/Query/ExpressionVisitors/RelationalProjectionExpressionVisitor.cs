@@ -14,17 +14,17 @@ namespace Microsoft.Data.Entity.Query.ExpressionVisitors
 {
     public class RelationalProjectionExpressionVisitor : ProjectionExpressionVisitor
     {
-        private readonly ISqlTranslatingExpressionVisitorFactory _sqlTranslatingExpressionVisitorFactory;
+        private readonly ISqlTranslatingExpressionVisitor _sqlTranslatingExpressionVisitor;
 
         private RelationalQueryModelVisitor _relationalQueryModelVisitor;
         private IQuerySource _querySource;
 
         public RelationalProjectionExpressionVisitor(
-            [NotNull] ISqlTranslatingExpressionVisitorFactory sqlTranslatingExpressionVisitorFactory)
+            [NotNull] ISqlTranslatingExpressionVisitor sqlTranslatingExpressionVisitor)
         {
-            Check.NotNull(sqlTranslatingExpressionVisitorFactory, nameof(sqlTranslatingExpressionVisitorFactory));
+            Check.NotNull(sqlTranslatingExpressionVisitor, nameof(sqlTranslatingExpressionVisitor));
 
-            _sqlTranslatingExpressionVisitorFactory = sqlTranslatingExpressionVisitorFactory;
+            _sqlTranslatingExpressionVisitor = sqlTranslatingExpressionVisitor;
         }
 
         public override Expression VisitProjection(
@@ -107,9 +107,12 @@ namespace Microsoft.Data.Entity.Query.ExpressionVisitors
                 && selectExpression != null)
             {
                 var sqlExpression
-                    = _sqlTranslatingExpressionVisitorFactory
-                        .Create(_relationalQueryModelVisitor, selectExpression, inProjection: true)
-                        .Visit(expression);
+                    = _sqlTranslatingExpressionVisitor
+                        .TranslateSql(
+                            _relationalQueryModelVisitor,
+                            expression,
+                            selectExpression,
+                            inProjection: true);
 
                 if (sqlExpression == null)
                 {
